@@ -36,11 +36,12 @@ pert.rvs(mini=10, mode=30, maxi=90, size=10)
 
 # The modified PERT distribution is also available.
 # A PERT distribution corresponds to `lambd=4`.
-# Note that you cannot call `mpert` without specifying `lambd`. 
-# Two distributions are needed due to a limitation in SciPy.
+# Note that you cannot call `mpert` without specifying `lambd`
+# (`pert` and `mpert` must have different signatures since SciPy does
+# not support optional shape parameters).
 mdist = mpert(10, 30, 90, lambd=2)
 
-# Values less than `lambd=4` have the effect of flattening the density curve
-#      6%                  >  1.5%
+# Values of `lambd<4` have the effect of flattening the density curve
+#       6%                 >  1.5%
 assert (1 - mdist.cdf(80)) > (1 - dist.cdf(80))
 ```
