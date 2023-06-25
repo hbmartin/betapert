@@ -25,6 +25,7 @@ coverage = "*"
 pytest = ">=7.2.0"
 black = {extras = ["d"], version = "*"}
 pytest-pycharm = "^0.7.0"
+matplotlib = "^3.7.1"
 
 
 
