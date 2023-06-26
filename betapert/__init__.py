@@ -67,7 +67,7 @@ class ModifiedPERT(scipy.stats.rv_continuous):
         return funcs.rvs(mini, mode, maxi, lambd, size=size, random_state=random_state)
 
 
-# ``pert`` and ``mpert`` being instances, not classes, is not idiomatic Python, but it is core to the way SciPy's
+# ``pert`` and ``mpert`` being instances, not classes, is not IMO idiomatic Python, but it is core to the way SciPy's
 # ``rv_continuous`` class works. See examples of how SciPy defines their distributions in
 # ``scipy/stats/_continuous_distns.py``.
 pert = PERT()
