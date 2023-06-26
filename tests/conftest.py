@@ -14,7 +14,7 @@ import pytest
         # Large values
         (1e6, 1e6 + 1, 1e6 + 2),
         # Small values
-        (1e-6, 1e-6 + 1, 1e-6 + 2),
+        (0, 1e-6, 2e-6),
     ],
     ids=lambda x: f"mini={x[0]}, mode={x[1]}, maxi={x[2]}",
 )
