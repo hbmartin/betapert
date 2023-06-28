@@ -16,7 +16,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.9,<3.13"
 scipy = "^1.10.1"
 
 [tool.poetry.group.dev.dependencies]
