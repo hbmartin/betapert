@@ -10,6 +10,17 @@ from betapert import funcs
 
 
 class PERT(scipy.stats.rv_continuous):
+    """
+    The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
+    minimum, most likely, and maximum values that a variable can take. It is commonly used to
+    elicit subjective beliefs. PERT is an alternative to the triangular distribution, but has a
+    smoother shape.
+
+    :param mini: The left bound of the distribution.
+    :param mode: The mode of the distribution.
+    :param maxi: The right bound of the distribution.
+    """
+
     def _get_support(self, mini, mode, maxi):
         return funcs.get_support(mini, mode, maxi)
 
@@ -39,6 +50,19 @@ class PERT(scipy.stats.rv_continuous):
 
 
 class ModifiedPERT(scipy.stats.rv_continuous):
+    """
+    The modified PERT distribution generalizes the PERT distribution by adding a fourth parameter
+    ``lambd`` that controls how much weight is given to the mode. ``lambd=4`` corresponds to the
+    traditional PERT distribution.
+
+    :param mini: The left bound of the distribution.
+    :param mode: The mode of the distribution.
+    :param maxi: The right bound of the distribution.
+    :param lambd:
+        The weight given to the mode. Relative to the PERT, values ``lambd < 4`` have the effect of flattening
+        the density curve.
+    """
+
     def _get_support(self, mini, mode, maxi, lambd):
         return funcs.get_support(mini, mode, maxi, lambd)
 
