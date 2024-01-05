@@ -1,7 +1,9 @@
 This package provides the [PERT](https://en.wikipedia.org/wiki/PERT_distribution) (also known as beta-PERT) distribution.
 
 # Background
-PERT stands for "[program evaluation and review technique](https://en.wikipedia.org/wiki/Program_evaluation_and_review_technique)". The distribution was first proposed by [Clark (1962)](https://doi.org/10.1287/opre.10.3.405). It is widely used in risk analysis to represent the uncertainty of the value of some quantity where one is relying on subjective estimates, because the three parameters defining the distribution are intuitive to the estimator.
+PERT stands for "[program evaluation and review technique](https://en.wikipedia.org/wiki/Program_evaluation_and_review_technique)", the original context for which the distribution was first proposed by [Clark (1962)](https://doi.org/10.1287/opre.10.3.405).
+
+The PERT distribution is widely used in risk and uncertainty modelling to represent uncertain quantities where one is relying on subjective estimates. This is because the three parameters defining the distribution are intuitive to the estimator.
 
 
 # This package
