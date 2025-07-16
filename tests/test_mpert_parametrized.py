@@ -22,19 +22,19 @@ def mpert(params, lambd):
 
 
 class TestKnownProperties:
-    def test_mode(self, mpert, params, lambd):
+    def test_mode(self, mpert, params):
         """The mode is the mode parameter."""
         mini, want_mode, maxi = params
 
         # Get the mode by numerically maximizing the pdf
         fmin = lambda x: -mpert.pdf(x)
         x0 = mini + (maxi - mini) / 2
-        optimize_result = scipy.optimize.minimize(fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-12)
+        optimize_result = scipy.optimize.minimize(
+            fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-10, method="trust-constr"
+        )
         if not optimize_result.success:
             msg = (
-                "Numerical optimization failed. This can happen if the distribution is "
-                "multimodal or if the optimization got stuck at a boundary.\n"
-                f"scipy optimize: {scipy.optimize.show_options(solver = 'minimize', disp = False)}\n"
+                f"scipy config: {scipy.show_config(mode = 'dicts')}\n"
                 f"Function value: {optimize_result.fun}\n"
                 f"Gradient norm: {np.linalg.norm(optimize_result.jac) if optimize_result.jac is not None else 'N/A'}\n"
                 f"Iterations: {optimize_result.nit}\n"
