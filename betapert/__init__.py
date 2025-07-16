@@ -4,6 +4,7 @@ Optional shape parameters are not supported, and are seemingly impossible to imp
 So there are two classes, one for the PERT distribution (with ``lambd=4``) and one for the modified PERT distribution
 (with ``lambd`` as a shape parameter). Beyond being repetitious, this also adversely affects the user-facing API.
 """
+import numpy as np
 import scipy.stats
 
 from betapert import funcs
@@ -27,15 +28,15 @@ class PERT(scipy.stats.rv_continuous):
     >>> from betapert import pert
     >>> dist = pert(0, 3, 12)
     >>> dist.mean()
-    4.0
+    np.float64(4.0)
     >>> dist.cdf(5)
-    0.691229423868313
+    np.float64(0.691229423868313)
 
     Equivalent to:
 
     >>> from betapert import pert
     >>> pert.cdf(5, 0, 3, 12)
-    0.691229423868313
+    np.float64(0.691229423868313)
     """
 
     def _get_support(self, mini, mode, maxi):
@@ -86,13 +87,13 @@ class ModifiedPERT(scipy.stats.rv_continuous):
     >>> from betapert import mpert
     >>> mdist = mpert(0, 3, 12, lambd=2)
     >>> mdist.mean()
-    4.5
+    np.float64(4.5)
 
     Values of ``lambd<4`` have the effect of flattening the density curve
 
     >>> dist = mpert(0, 3, 12, lambd=4)
     >>> 1 - mdist.cdf(8), 1 - dist.cdf(8)
-    (0.11395114580927845, 0.04526748971193417)
+    (np.float64(0.11395114580927845), np.float64(0.04526748971193417))
     """
 
     def _get_support(self, mini, mode, maxi, lambd):
