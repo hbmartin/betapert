@@ -1,6 +1,6 @@
 [tool]
 [tool.poetry]
-name = "betapert"
+name = "beta-pert-dist-scipy"
 version = "0.1.6"
 homepage = "https://github.com/tadamcz/betapert"
 description = "Top-level package for beta-PERT distribution."

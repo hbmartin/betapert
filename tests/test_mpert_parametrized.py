@@ -30,7 +30,7 @@ class TestKnownProperties:
         fmin = lambda x: -mpert.pdf(x)
         x0 = mini + (maxi - mini) / 2
         optimize_result = scipy.optimize.minimize(
-            fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-10, method="trust-constr"
+            fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-10, method="trust-constr",
         )
         if not optimize_result.success:
             msg = (

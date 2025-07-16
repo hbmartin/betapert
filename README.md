@@ -1,3 +1,8 @@
+[![PyPI](https://img.shields.io/pypi/v/beta-pert-dist-scipy.svg)](https://pypi.org/project/beta-pert-dist-scipy/)
+[![Pytest, ruff, and black](https://github.com/hbmartin/betapert/actions/workflows/pytest-poetry.yml/badge.svg)](https://github.com/hbmartin/betapert/actions/workflows/pytest-poetry.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Code style: black](https://img.shields.io/badge/🐧️-black-000000.svg)](https://github.com/psf/black)
+
 This package provides the [PERT](https://en.wikipedia.org/wiki/PERT_distribution) (also known as beta-PERT) distribution.
 
 # Background
@@ -13,8 +18,7 @@ The distributions work exactly like SciPy continuous probability distributions. 
 
 # Installation
 ```shell
-# or `poetry add betapert`
-pip install betapert
+uv add beta-pert-dist-scipy
 ```
 
 # Usage
@@ -63,3 +67,8 @@ tests/test_generalization.py
 tests/test_mpert_parametrized.py
 tests/test_special_cases.py 
 ```
+
+# Authors
+
+- [betapert (original)](https://github.com/tadamcz/betapert) by [Tom Adamczewski](https://github.com/tadamcz)
+- beta-pert-dist-scipy Python 3.13 drop-in replacement by Harold Martin
