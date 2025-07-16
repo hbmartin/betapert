@@ -55,7 +55,7 @@ ignore = ["ANN001", "ANN201", "ANN202", "ARG001", "D203", "D205", "D213", "D400"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
-"betapert/funcs.py" = ["D103"]
+"betapert/funcs.py" = ["D103", "RUF002", "RUF003"]
 
 [tool.ruff.format]
 # Same as Black.
