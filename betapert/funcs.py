@@ -1,3 +1,10 @@
+"""Functions implementing the PERT and modified PERT distributions.
+
+This module contains the core mathematical functions used by the PERT and modified PERT distribution
+classes. Each function takes the distribution parameters (minimum, mode, maximum, and optionally
+lambda) and implementsa specific statistical operation like pdf, cdf, etc.
+"""
+
 import numpy as np
 import scipy.stats
 
@@ -36,7 +43,10 @@ def isf(q, mini, mode, maxi, lambd=4):
 def rvs(mini, mode, maxi, lambd=4, size=None, random_state=None):
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
     return mini + (maxi - mini) * scipy.stats.beta.rvs(
-        alpha, beta, size=size, random_state=random_state,
+        alpha,
+        beta,
+        size=size,
+        random_state=random_state,
     )
 
 

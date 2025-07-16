@@ -22,11 +22,9 @@ python = ">=3.11"
 scipy = "^1.14.0"
 
 [tool.poetry.group.dev.dependencies]
-bump2version = "*"
 coverage = "*"
 pytest = ">=7.2.0"
 black = {extras = ["d"], version = "*"}
-pytest-pycharm = "^0.7.0"
 matplotlib = "^3.9.0"
 ruff = "^0.12.3"
 
@@ -53,11 +51,11 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["ANN001", "ANN201", "ARG001", "D205", "D400", "D415"]
+ignore = ["ANN001", "ANN201", "ANN202", "ARG001", "D203", "D205", "D213", "D400", "D415", "PLR0913"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D205", "D212", "D400", "D401", "D404", "D415", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
-"betapert/funcs.py" = ["D103", "PLR0913"]
+"tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
+"betapert/funcs.py" = ["D103"]
 
 [tool.ruff.format]
 # Same as Black.

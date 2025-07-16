@@ -203,18 +203,6 @@ jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
-name = "bump2version"
-version = "1.0.1"
-description = "Version-bump your software with a single command!"
-optional = false
-python-versions = ">=3.5"
-groups = ["dev"]
-files = [
-    {file = "bump2version-1.0.1-py2.py3-none-any.whl", hash = "sha256:37f927ea17cde7ae2d7baf832f8e80ce3777624554a653006c9144f8017fe410"},
-    {file = "bump2version-1.0.1.tar.gz", hash = "sha256:762cb2bfad61f4ec8e2bdf452c7c267416f8c70dd9ecb1653fd0bbb01fa936e6"},
-]
-
-[[package]]
 name = "click"
 version = "8.2.1"
 description = "Composable command line interface toolkit"
@@ -1306,21 +1294,6 @@ pygments = ">=2.7.2"
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
 
 [[package]]
-name = "pytest-pycharm"
-version = "0.7.0"
-description = "Plugin for py.test to enter PyCharm debugger on uncaught exceptions"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "pytest-pycharm-0.7.0.tar.gz", hash = "sha256:d920c016a2b14449b68943762d0fa42dc03cb0060b5c375336e5e2b1bebda0dd"},
-    {file = "pytest_pycharm-0.7.0-py3-none-any.whl", hash = "sha256:5a642e3e21487cb2e1bf78464edb7f1b31996f8fce34780786f218144de9d7cf"},
-]
-
-[package.dependencies]
-pytest = ">=2.3"
-
-[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -1565,4 +1538,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "f2029cc7fbc08d5eba246c6f8e817d0768bce016dac0e86fa44414ee4347a754"
+content-hash = "06ff3bbdd862c024f3a42236fccfc4af60794c373f71b0f487e00b355112b6e4"

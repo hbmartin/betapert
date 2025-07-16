@@ -1,4 +1,4 @@
-name: Run Pytest with Poetry
+name: Pytest, ruff, and black
 
 on:
   push:

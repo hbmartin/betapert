@@ -1,10 +1,10 @@
 """Arbitrary parameters in SciPy's ``rv_continuous`` class must be 'shape' parameters.
-Optional shape parameters are not supported, and are seemingly impossible to implement without egregious hacks.
-So there are two classes, one for the PERT distribution (with ``lambd=4``) and one for the modified PERT distribution
-(with ``lambd`` as a shape parameter). Beyond being repetitious, this also adversely affects the user-facing API.
+Optional shape parameters are not supported, and are seemingly impossible to implement
+without egregious hacks. So there are two classes, one for the PERT distribution
+(with ``lambd=4``) and one for the modified PERT distribution (with ``lambd`` as a shape parameter).
+Beyond being repetitious, this also adversely affects the user-facing API.
 """
 
-import numpy as np
 import scipy.stats
 
 from betapert import funcs
@@ -75,8 +75,8 @@ class ModifiedPERT(scipy.stats.rv_continuous):
     :param mode: The mode of the distribution.
     :param maxi: The right bound of the distribution.
     :param lambd:
-        The weight given to the mode. Relative to the PERT, values ``lambd < 4`` have the effect of flattening
-        the density curve.
+        The weight given to the mode. Relative to the PERT, values ``lambd < 4`` have the effect of
+        flattening the density curve.
 
 
     Examples

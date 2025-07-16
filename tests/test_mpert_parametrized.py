@@ -34,14 +34,16 @@ class TestKnownProperties:
             msg = (
                 "Numerical optimization failed. This can happen if the distribution is "
                 "multimodal or if the optimization got stuck at a boundary.\n"
-                f"mini: {mini}\n"
-                f"mode: {want_mode}\n"
-                f"maxi: {maxi}\n"
-                f"x0: {x0}\n"
+                f"scipy optimize: {scipy.optimize.show_options(solver = 'minimize', disp = False)}\n"
+                f"Function value: {optimize_result.fun}\n"
+                f"Gradient norm: {np.linalg.norm(optimize_result.jac) if optimize_result.jac is not None else 'N/A'}\n"
+                f"Iterations: {optimize_result.nit}\n"
+                f"Function evaluations: {optimize_result.nfev}\n"
                 f"pdf at x0: {mpert.pdf(x0)}\n"
                 f"pdf at mini: {mpert.pdf(mini)}\n"
                 f"pdf at maxi: {mpert.pdf(maxi)}\n"
-                f"Status: {optimize_result.status}\nMessage:\n{optimize_result.message}"
+                f"Status: {optimize_result.status}"
+                f"\nMessage:\n{optimize_result.message}"
             )
             raise RuntimeError(msg)
 
