@@ -2,7 +2,7 @@
 [tool.poetry]
 name = "beta-pert-dist-scipy"
 version = "0.1.6"
-homepage = "https://github.com/tadamcz/betapert"
+homepage = "https://github.com/hbmartin/betapert"
 description = "Top-level package for beta-PERT distribution."
 authors = ["Tom Adamczewski <tadamczewskipublic@gmail.com>", "Harold Martin harold.martin@gmail.com"]
 readme = "README.md"

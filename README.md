@@ -71,4 +71,4 @@ tests/test_special_cases.py
 # Authors
 
 - [betapert (original)](https://github.com/tadamcz/betapert) by [Tom Adamczewski](https://github.com/tadamcz)
-- beta-pert-dist-scipy Python 3.13 drop-in replacement by Harold Martin
+- beta-pert-dist-scipy Python 3.13 drop-in replacement with adjusted beta distribution variance and kurtosis by Harold Martin
