@@ -27,7 +27,7 @@ def pert(params):
         "stats",
         "median",
         "support",
-    ]
+    ],
 )
 def method(request):
     """The method to test"""

@@ -1,5 +1,4 @@
-"""
-Arbitrary parameters in SciPy's ``rv_continuous`` class must be 'shape' parameters.
+"""Arbitrary parameters in SciPy's ``rv_continuous`` class must be 'shape' parameters.
 Optional shape parameters are not supported, and are seemingly impossible to implement without egregious hacks.
 So there are two classes, one for the PERT distribution (with ``lambd=4``) and one for the modified PERT distribution
 (with ``lambd`` as a shape parameter). Beyond being repetitious, this also adversely affects the user-facing API.
@@ -12,8 +11,7 @@ from betapert import funcs
 
 
 class PERT(scipy.stats.rv_continuous):
-    """
-    The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
+    """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
     minimum, most likely, and maximum values that a variable can take. It is commonly used to
     elicit subjective beliefs. PERT is an alternative to the triangular distribution, but has a
     smoother shape.
@@ -25,7 +23,6 @@ class PERT(scipy.stats.rv_continuous):
 
     Examples
     --------
-
     >>> from betapert import pert
     >>> dist = pert(0, 3, 12)
     >>> dist.mean()
@@ -38,6 +35,7 @@ class PERT(scipy.stats.rv_continuous):
     >>> from betapert import pert
     >>> pert.cdf(5, 0, 3, 12)
     np.float64(0.691229423868313)
+
     """
 
     def _get_support(self, mini, mode, maxi):
@@ -69,8 +67,7 @@ class PERT(scipy.stats.rv_continuous):
 
 
 class ModifiedPERT(scipy.stats.rv_continuous):
-    """
-    The modified PERT distribution generalizes the PERT distribution by adding a fourth parameter
+    """The modified PERT distribution generalizes the PERT distribution by adding a fourth parameter
     ``lambd`` that controls how much weight is given to the mode. ``lambd=4`` corresponds to the
     traditional PERT distribution.
 
@@ -84,7 +81,6 @@ class ModifiedPERT(scipy.stats.rv_continuous):
 
     Examples
     --------
-
     >>> from betapert import mpert
     >>> mdist = mpert(0, 3, 12, lambd=2)
     >>> mdist.mean()
@@ -95,6 +91,7 @@ class ModifiedPERT(scipy.stats.rv_continuous):
     >>> dist = mpert(0, 3, 12, lambd=4)
     >>> 1 - mdist.cdf(8), 1 - dist.cdf(8)
     (np.float64(0.11395114580927845), np.float64(0.04526748971193417))
+
     """
 
     def _get_support(self, mini, mode, maxi, lambd):
@@ -125,8 +122,8 @@ class ModifiedPERT(scipy.stats.rv_continuous):
         return funcs.rvs(mini, mode, maxi, lambd, size=size, random_state=random_state)
 
 
-# ``pert`` and ``mpert`` being instances, not classes, is not IMO idiomatic Python, but it is core to the way SciPy's
-# ``rv_continuous`` class works. See examples of how SciPy defines their distributions in
-# ``scipy/stats/_continuous_distns.py``.
+# ``pert`` and ``mpert`` being instances, not classes, is not IMO idiomatic Python, but it is core
+# to the way SciPy's ``rv_continuous`` class works. See examples of how SciPy defines their
+# distributions in ``scipy/stats/_continuous_distns.py``.
 pert = PERT()
 mpert = ModifiedPERT()

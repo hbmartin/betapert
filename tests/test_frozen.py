@@ -43,7 +43,7 @@ def pert_nonfrozen():
 def dist_pair(request, mpert_frozen, mpert_nonfrozen, pert_frozen, pert_nonfrozen):
     if request.param == "PERT":
         return (mpert_frozen, mpert_nonfrozen)
-    elif request.param == "ModifiedPERT":
+    if request.param == "ModifiedPERT":
         return (pert_frozen, pert_nonfrozen)
 
 

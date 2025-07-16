@@ -48,7 +48,7 @@ def lambd(request):
         "var",
         "interval",
         "support",
-    ]
+    ],
 )
 def method(request):
     """The method to test"""

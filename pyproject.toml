@@ -1,14 +1,16 @@
 [tool]
 [tool.poetry]
 name = "betapert"
-version = "0.1.5"
+version = "0.1.6"
 homepage = "https://github.com/tadamcz/betapert"
 description = "Top-level package for beta-PERT distribution."
-authors = ["Tom Adamczewski <tadamczewskipublic@gmail.com>"]
+authors = ["Tom Adamczewski <tadamczewskipublic@gmail.com>", "Harold Martin harold.martin@gmail.com"]
 readme = "README.md"
 classifiers=[
     'Natural Language :: English',
-    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
 ]
 packages = [
     { include = "betapert" },
@@ -45,13 +47,17 @@ profile = "black"
 exclude = [".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".ipynb_checkpoints", ".mypy_cache", ".nox", ".pants.d", ".pyenv", ".pytest_cache", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv", ".vscode", "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "setup.py", "site-packages", "venv"]
 
 # Same as Black.
-line-length = 88
+line-length = 100
 indent-width = 4
 target-version = "py313"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D100", "D203", "D213"]
+ignore = ["ANN001", "ANN201", "ARG001", "D205", "D400", "D415"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D205", "D212", "D400", "D401", "D404", "D415", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
+"betapert/funcs.py" = ["D103", "PLR0913"]
 
 [tool.ruff.format]
 # Same as Black.

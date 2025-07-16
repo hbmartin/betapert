@@ -78,7 +78,7 @@ class TestClosedFormExpressions:
         numerical = mpert.expect(
             # Fisher's skewness: third standardized moment
             lambda x: ((x - mpert.mean()) / mpert.std())
-            ** 3
+            ** 3,
         )
         assert closed_form == pytest.approx(numerical)
 

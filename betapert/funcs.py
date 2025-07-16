@@ -36,7 +36,7 @@ def isf(q, mini, mode, maxi, lambd=4):
 def rvs(mini, mode, maxi, lambd=4, size=None, random_state=None):
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
     return mini + (maxi - mini) * scipy.stats.beta.rvs(
-        alpha, beta, size=size, random_state=random_state
+        alpha, beta, size=size, random_state=random_state,
     )
 
 
@@ -55,8 +55,8 @@ def var(mini, mode, maxi, lambd=4):
 def skew(mini, mode, maxi, lambd=4):
     numerator = 2 * (-2 * mode + maxi + mini) * lambd * np.sqrt(3 + lambd)
     denominator_left = 4 + lambd
-    denominator_middle = np.sqrt((maxi - mini - mode * lambd + maxi * lambd))
-    denominator_right = np.sqrt((maxi + mode * lambd - mini * (1 + lambd)))
+    denominator_middle = np.sqrt(maxi - mini - mode * lambd + maxi * lambd)
+    denominator_right = np.sqrt(maxi + mode * lambd - mini * (1 + lambd))
     denominator = denominator_left * denominator_middle * denominator_right
     return numerator / denominator
 
@@ -77,10 +77,9 @@ def argcheck(mini, mode, maxi, lambd=4):
 
 
 def get_support(mini, mode, maxi, lambd=4):
-    """
-    SciPy requires this per the documentation:
+    """SciPy requires this per the documentation:
 
-        If either of the endpoints of the support do depend on the shape parameters, then i) the distribution
-        must implement the _get_support method; ...
+    If either of the endpoints of the support do depend on the shape parameters, then i) the
+    distribution must implement the _get_support method; ...
     """
     return mini, maxi
