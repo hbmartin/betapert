@@ -4,6 +4,7 @@ Optional shape parameters are not supported, and are seemingly impossible to imp
 So there are two classes, one for the PERT distribution (with ``lambd=4``) and one for the modified PERT distribution
 (with ``lambd`` as a shape parameter). Beyond being repetitious, this also adversely affects the user-facing API.
 """
+
 import numpy as np
 import scipy.stats
 

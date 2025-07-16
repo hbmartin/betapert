@@ -1,6 +1,7 @@
 """
 Test that the frozen and non-frozen distributions give the same numerical results.
 """
+
 import numpy as np
 import pytest
 

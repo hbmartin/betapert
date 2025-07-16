@@ -3,6 +3,7 @@ Parametrized tests for the modified PERT distribution.
 Since it's a generalization of the PERT distribution, we don't need to repeat everything for the PERT distribution.
 The generalization is tested in ``test_generalization.py``.
 """
+
 import numpy as np
 import pytest
 import scipy
@@ -30,7 +31,13 @@ class TestKnownProperties:
         x0 = mini + (maxi - mini) / 2
         optimize_result = scipy.optimize.minimize(fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-12)
         if not optimize_result.success:
-            raise RuntimeError("Numerical optimization failed")
+            msg = (
+                f"Numerical optimization failed to find mode. This can happen if the distribution is "
+                f"multimodal or if the optimization got stuck at a boundary. "
+                f"Status: {optimize_result.status}, Message: {optimize_result.message}"
+            )
+            raise RuntimeError(msg)
+
         mode = optimize_result.x[0]
 
         assert mode == pytest.approx(want_mode, abs=1.5e-6, rel=1e-5)

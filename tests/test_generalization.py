@@ -1,6 +1,7 @@
 """
 Test that the PERT distribution is equivalent to the modified PERT distribution with ``lambd=4``.
 """
+
 import numpy as np
 import pytest
 
