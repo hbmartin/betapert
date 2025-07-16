@@ -32,9 +32,16 @@ class TestKnownProperties:
         optimize_result = scipy.optimize.minimize(fmin, x0=x0, bounds=[(mini, maxi)], tol=1e-12)
         if not optimize_result.success:
             msg = (
-                f"Numerical optimization failed to find mode. This can happen if the distribution is "
-                f"multimodal or if the optimization got stuck at a boundary. "
-                f"Status: {optimize_result.status}, Message: {optimize_result.message}"
+                "Numerical optimization failed. This can happen if the distribution is "
+                "multimodal or if the optimization got stuck at a boundary.\n"
+                f"mini: {mini}\n"
+                f"mode: {want_mode}\n"
+                f"maxi: {maxi}\n"
+                f"x0: {x0}\n"
+                f"pdf at x0: {mpert.pdf(x0)}\n"
+                f"pdf at mini: {mpert.pdf(mini)}\n"
+                f"pdf at maxi: {mpert.pdf(maxi)}\n"
+                f"Status: {optimize_result.status}\nMessage:\n{optimize_result.message}"
             )
             raise RuntimeError(msg)
 
