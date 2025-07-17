@@ -22,17 +22,19 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     q = np.atleast_1d(q)
     results = np.zeros_like(q, dtype=float)
 
-    for i, qi in enumerate(q):
-        # Define the equation to solve: log(CDF(x)) - log(q) = 0
-        def log_cdf_eq(x_normalized, qi=qi):  # def does not bind loop variable `qi`
+     # Define the equation to solve: log(CDF(x)) - log(q) = 0
+    def make_log_cdf_eq(qi_val):
+        def log_cdf_eq(x_normalized):
             # Ensure x_normalized stays in [0,1]
-            log_qi = np.log(np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
+            log_qi = np.log(np.clip(qi_val, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
             x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
+        return log_cdf_eq
 
+    for i, qi in enumerate(q):
         try:
             # Use brentq instead of fsolve, guaranteed convergence within bounds
-            x_normalized = scipy.optimize.brentq(log_cdf_eq, _BRENTQ_BOUND, 1 - _BRENTQ_BOUND)
+            x_normalized = scipy.optimize.brentq(make_log_cdf_eq(qi), _BRENTQ_BOUND, 1 - _BRENTQ_BOUND)
             results[i] = mini + (maxi - mini) * x_normalized
 
         except (ValueError, RuntimeError):

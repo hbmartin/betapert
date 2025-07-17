@@ -130,11 +130,10 @@ class TestPPFLogFallback:
         assert np.all(np.isfinite(result_normal))
 
     def test_ppf_fallback_not_triggered_when_not_configured(self):
-        """Test that fallback is triggered when regular ppf returns NaN."""
+        """Test that fallback is NOT triggered by default when regular ppf returns NaN."""
         mini, mode, maxi = 0, 1, 10
 
         with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
-            betapert.FALLBACK = None
             dist = betapert.pert(mini, mode, maxi)
             result = dist.ppf(0.5)
             assert np.isnan(result)
