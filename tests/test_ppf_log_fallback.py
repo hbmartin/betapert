@@ -2,6 +2,8 @@
 Test the ppf log fallback functionality.
 """
 
+import unittest.mock
+
 import numpy as np
 import pytest
 import scipy.optimize
@@ -20,7 +22,7 @@ class TestPPFLogFallback:
         q = np.array([0.1, 0.5, 0.9])
 
         # Test direct fallback function
-        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
         # Should return valid values within bounds
         assert np.all(result >= mini)
@@ -36,7 +38,7 @@ class TestPPFLogFallback:
 
         # Test very small probabilities
         q_small = np.array([1e-10, 1e-15, 1e-20])
-        result_small = funcs._ppf_fallback_log_space(q_small, mini, mode, maxi)
+        result_small = funcs._ppf_fallback_log_space(q_small, mini, mode, maxi, 4)
 
         assert np.all(result_small >= mini)
         assert np.all(result_small <= maxi)
@@ -44,7 +46,7 @@ class TestPPFLogFallback:
 
         # Test very large probabilities
         q_large = np.array([1 - 1e-10, 1 - 1e-15, 1 - 1e-20])
-        result_large = funcs._ppf_fallback_log_space(q_large, mini, mode, maxi)
+        result_large = funcs._ppf_fallback_log_space(q_large, mini, mode, maxi, 4)
 
         assert np.all(result_large >= mini)
         assert np.all(result_large <= maxi)
@@ -56,7 +58,7 @@ class TestPPFLogFallback:
 
         # Test q = 0 and q = 1 (should be clamped internally)
         q_edge = np.array([0, 1])
-        result_edge = funcs._ppf_fallback_log_space(q_edge, mini, mode, maxi)
+        result_edge = funcs._ppf_fallback_log_space(q_edge, mini, mode, maxi, 4)
 
         assert np.all(result_edge >= mini)
         assert np.all(result_edge <= maxi)
@@ -67,7 +69,7 @@ class TestPPFLogFallback:
         mini, mode, maxi = 0, 1, 10
         q = 0.5
 
-        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
         assert isinstance(result, (int, float, np.number))
         assert mini <= result <= maxi
@@ -110,24 +112,17 @@ class TestPPFLogFallback:
         """Test that fallback is triggered when regular ppf returns NaN."""
         mini, mode, maxi = 0, 1, 10
 
-        # Mock scipy.stats.beta.ppf to return NaN
-        original_ppf = scipy.stats.beta.ppf
-
         def mock_ppf_nan(*args, **kwargs):
+            q = args[0] if args else kwargs.get("q", 0.5)
+            if hasattr(q, "shape"):
+                return np.full(q.shape, np.nan)
             return np.nan
 
-        scipy.stats.beta.ppf = mock_ppf_nan
-
-        try:
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=mock_ppf_nan):
             # This should trigger the fallback
             result = funcs.ppf(0.5, mini, mode, maxi, fallback="log")
-
             assert np.isfinite(result)
             assert mini <= result <= maxi
-
-        finally:
-            # Restore original function
-            scipy.stats.beta.ppf = original_ppf
 
     def test_log_fallback_consistency_with_cdf(self):
         """Test that log fallback results are consistent with CDF."""
@@ -166,7 +161,7 @@ class TestPPFLogFallback:
 
         try:
             # This should fall back to linear interpolation
-            result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+            result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
             # Should fall back to linear interpolation: mini + q * (maxi - mini)
             expected = mini + q * (maxi - mini)
@@ -181,22 +176,16 @@ class TestPPFLogFallback:
         """Test that ppf without fallback returns NaN when appropriate."""
         mini, mode, maxi = 0, 1, 10
 
-        # Mock scipy.stats.beta.ppf to return NaN
-        original_ppf = scipy.stats.beta.ppf
-
         def mock_ppf_nan(*args, **kwargs):
+            q = args[0] if args else kwargs.get("q", 0.5)
+            if hasattr(q, "shape"):
+                return np.full(q.shape, np.nan)
             return np.nan
 
-        scipy.stats.beta.ppf = mock_ppf_nan
-
-        try:
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=mock_ppf_nan):
             # Without fallback, should return NaN
             result = funcs.ppf(0.5, mini, mode, maxi, fallback=None)
             assert np.isnan(result)
-
-        finally:
-            # Restore original function
-            scipy.stats.beta.ppf = original_ppf
 
     def test_log_fallback_with_arrays(self):
         """Test log fallback with various array shapes."""
@@ -204,7 +193,7 @@ class TestPPFLogFallback:
 
         # Test 1D array
         q_1d = np.array([0.1, 0.5, 0.9])
-        result_1d = funcs._ppf_fallback_log_space(q_1d, mini, mode, maxi)
+        result_1d = funcs._ppf_fallback_log_space(q_1d, mini, mode, maxi, 4)
 
         assert result_1d.shape == q_1d.shape
         assert np.all(result_1d >= mini)
@@ -212,7 +201,7 @@ class TestPPFLogFallback:
 
         # Test 2D array
         q_2d = np.array([[0.1, 0.5], [0.7, 0.9]])
-        result_2d = funcs._ppf_fallback_log_space(q_2d, mini, mode, maxi)
+        result_2d = funcs._ppf_fallback_log_space(q_2d, mini, mode, maxi, 4)
 
         assert result_2d.shape == q_2d.shape
         assert np.all(result_2d >= mini)
@@ -225,7 +214,7 @@ class TestPPFLogFallback:
         # Create monotonic sequence of probabilities
         q_values = np.linspace(0.01, 0.99, 20)
 
-        result = funcs._ppf_fallback_log_space(q_values, mini, mode, maxi)
+        result = funcs._ppf_fallback_log_space(q_values, mini, mode, maxi, 4)
 
         # Check that results are monotonic
         assert np.all(np.diff(result) >= 0), "Results should be monotonic"
@@ -234,7 +223,7 @@ class TestPPFLogFallback:
         """Test that invalid fallback type raises appropriate error."""
         mini, mode, maxi = 0, 1, 10
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             funcs.ppf(0.5, mini, mode, maxi, fallback="invalid")
 
     def test_log_fallback_performance_edge_case(self):
@@ -243,7 +232,7 @@ class TestPPFLogFallback:
         mini, mode, maxi = 0, 1e-10, 1e-9
         q = np.array([0.1, 0.5, 0.9])
 
-        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
         assert np.all(result >= mini)
         assert np.all(result <= maxi)
@@ -251,8 +240,70 @@ class TestPPFLogFallback:
 
         # Very large range
         mini, mode, maxi = 0, 1e6, 1e10
-        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
         assert np.all(result >= mini)
         assert np.all(result <= maxi)
         assert np.all(np.isfinite(result))
+
+    def test_log_fallback_2d_input(self):
+        """Test log fallback with 2D input arrays."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test 2D array input
+        q_2d = np.array([[0.1, 0.3, 0.5], [0.7, 0.9, 0.99]])
+        result_2d = funcs._ppf_fallback_log_space(q_2d, mini, mode, maxi, 4)
+
+        # Should preserve shape
+        assert result_2d.shape == q_2d.shape
+        assert np.all(result_2d >= mini)
+        assert np.all(result_2d <= maxi)
+        assert np.all(np.isfinite(result_2d))
+
+        # Test 3D array input
+        q_3d = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
+        result_3d = funcs._ppf_fallback_log_space(q_3d, mini, mode, maxi, 4)
+
+        assert result_3d.shape == q_3d.shape
+        assert np.all(result_3d >= mini)
+        assert np.all(result_3d <= maxi)
+        assert np.all(np.isfinite(result_3d))
+
+    def test_log_fallback_scalar_return(self):
+        """Test that log fallback returns scalar when input is scalar."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test scalar input
+        q_scalar = 0.5
+        result_scalar = funcs._ppf_fallback_log_space(q_scalar, mini, mode, maxi, 4)
+
+        # Should return scalar, not array
+        assert isinstance(result_scalar, (int, float, np.number))
+        assert not isinstance(result_scalar, np.ndarray)
+        assert mini <= result_scalar <= maxi
+        assert np.isfinite(result_scalar)
+
+        # Test single-element array input
+        q_single = np.array([0.5])
+        result_single = funcs._ppf_fallback_log_space(q_single, mini, mode, maxi, 4)
+
+        # Should return scalar for single-element array
+        assert isinstance(result_single, (int, float, np.number))
+        assert not isinstance(result_single, np.ndarray)
+        assert mini <= result_single <= maxi
+        assert np.isfinite(result_single)
+
+    def test_log_fallback_array_return(self):
+        """Test that log fallback returns array when input is array with multiple elements."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test array with multiple elements
+        q_array = np.array([0.1, 0.5, 0.9])
+        result_array = funcs._ppf_fallback_log_space(q_array, mini, mode, maxi, 4)
+
+        # Should return array
+        assert isinstance(result_array, np.ndarray)
+        assert result_array.shape == q_array.shape
+        assert np.all(result_array >= mini)
+        assert np.all(result_array <= maxi)
+        assert np.all(np.isfinite(result_array))

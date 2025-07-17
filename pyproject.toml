@@ -54,7 +54,7 @@ select = ["ALL"]
 ignore = ["ANN001", "ANN201", "ANN202", "ARG001", "D203", "D205", "D213", "D400", "D415", "PLR0913"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
+"tests/*.py" = ["ANN002", "ANN003", "ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "EM101", "NPY002", "PLR2004", "PT011", "RET503", "S101", "SLF001", "TRY003"]
 "betapert/funcs.py" = ["D103", "RUF002", "RUF003"]
 
 [tool.ruff.format]

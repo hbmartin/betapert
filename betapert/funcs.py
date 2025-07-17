@@ -2,17 +2,24 @@
 
 This module contains the core mathematical functions used by the PERT and modified PERT distribution
 classes. Each function takes the distribution parameters (minimum, mode, maximum, and optionally
-lambda) and implementsa specific statistical operation like pdf, cdf, etc.
+lambda) and implements a specific statistical operation like pdf, cdf, etc.
 """
 
 import numpy as np
 import scipy.stats
 
+# Avoid log(0) or log(1) which would cause -inf or 0
 _CLIP_EPSILON = 1e-15
-_BRENTQ_LOWER_BOUND = 1e-10
+_BRENTQ_BOUND = 1e-10
 
 
-def _ppf_fallback_log_space(q, mini, mode, maxi, lambd=4):
+def _clip(qi, mini, maxi):
+    lower = mini + _CLIP_EPSILON if mini >= 0 else mini - _CLIP_EPSILON
+    upper = maxi - _CLIP_EPSILON if maxi <= 1 else maxi + _CLIP_EPSILON
+    return np.clip(qi, lower, upper)
+
+
+def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     """Use log-space to avoid numerical issues with extreme probabilities"""
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
 
@@ -21,28 +28,27 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd=4):
     results = np.zeros_like(q, dtype=float)
 
     for i, qi in enumerate(q):
-        # Clamp to avoid log(0) or log(1)
-        qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
-        log_qi = np.log(qi_safe)
-
         # Define the equation to solve: log(CDF(x)) - log(q) = 0
-        def log_cdf_eq(x_normalized):
+        def log_cdf_eq(x_normalized, qi=qi):  # def does not bind loop variable `qi`
             # Ensure x_normalized stays in [0,1]
-            x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
+            log_qi = np.log(_clip(qi, mini, maxi))
+            x_clamped = _clip(x_normalized, mini, maxi)
             return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
 
         try:
-            # Use brentq with bounds instead of fsolve for more stability
-            x_normalized = scipy.optimize.brentq(
-                log_cdf_eq, _BRENTQ_LOWER_BOUND, 1 - _BRENTQ_LOWER_BOUND
-            )
+            # Use brentq instead of fsolve, guaranteed convergence within bounds
+            x_normalized = scipy.optimize.brentq(log_cdf_eq, _BRENTQ_BOUND, 1 - _BRENTQ_BOUND)
             results[i] = mini + (maxi - mini) * x_normalized
 
         except (ValueError, RuntimeError):
-            # Fallback to regular ppf if log-space fails
+            # ValueError: Invalid function values, convergence issues, or invalid bounds
+            # RuntimeError: Maximum iterations exceeded, numerical problems
+            # Fallback to clamped ppf if log-space fails
+            qi_safe = _clip(qi, mini, maxi)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
             results[i] = mini + (maxi - mini) * x_normalized
 
+    # Returns scalar for scalar input, array for array input
     return results[0] if len(results) == 1 else results
 
 

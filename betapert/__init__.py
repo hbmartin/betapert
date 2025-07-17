@@ -9,8 +9,6 @@ import scipy.stats
 
 from betapert import funcs
 
-_FALLBACKS = {None, "log"}
-
 
 class PERT(scipy.stats.rv_continuous):
     """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
@@ -40,10 +38,17 @@ class PERT(scipy.stats.rv_continuous):
 
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+        """Initialize PERT distribution.
+
+        Takes all arguments from scipy.stats.rv_continuous plus:
+
+        :param fallback: Method to use when ppf calculation fails. Can be None or 'log'.
+            Defaults to None.
+            If None, returns NaN for failed calculations.
+            If 'log', uses a log-space interpolation fallback method.
+        """
         self.fallback = kwargs.pop("fallback", None)
-        if self.fallback not in _FALLBACKS:
-            raise ValueError(f"Invalid fallback value: '{self.fallback}'")
         super().__init__(*args, **kwargs)
 
     def _get_support(self, mini, mode, maxi):
