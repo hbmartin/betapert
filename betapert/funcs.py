@@ -33,7 +33,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
 
         return log_cdf_eq
 
-    for i, qi in enumerate(_q.flat):
+    for i, qi in np.ndenumerate(_q):
         try:
             # Use brentq instead of fsolve, guaranteed convergence within bounds
             x_normalized = scipy.optimize.brentq(
@@ -41,7 +41,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
                 _BRENTQ_BOUND,
                 1 - _BRENTQ_BOUND,
             )
-            results.flat[i] = mini + (maxi - mini) * x_normalized
+            results[i] = mini + (maxi - mini) * x_normalized
 
         except (ValueError, RuntimeError):
             # ValueError: Invalid function values, convergence issues, or invalid bounds
@@ -49,7 +49,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             # Fallback to clamped ppf if log-space fails
             qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
-            results.flat[i] = mini + (maxi - mini) * x_normalized
+            results[i] = mini + (maxi - mini) * x_normalized
 
     # Returns scalar for scalar input, array for array input
     return results[0] if np.isscalar(q) else results

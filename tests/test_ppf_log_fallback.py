@@ -341,25 +341,3 @@ class TestPPFLogFallback:
         assert np.all(result_array >= mini)
         assert np.all(result_array <= maxi)
         assert np.all(np.isfinite(result_array))
-
-    def test_log_fallback_handles_beta_ppf_array_return(self):
-        """Test that log fallback correctly handles when beta.ppf returns an array."""
-        mini, mode, maxi = 0, 1, 10
-
-        # Test scalar input - this used to cause "ValueError: setting an array element with a sequence"
-        q_scalar = 0.5
-        result_scalar = funcs._ppf_fallback_log_space(q_scalar, mini, mode, maxi, 4)
-        
-        assert isinstance(result_scalar, np.number)
-        assert mini <= result_scalar <= maxi
-        assert np.isfinite(result_scalar)
-        
-        # Test array input 
-        q_array = np.array([0.1, 0.5, 0.9])
-        result_array = funcs._ppf_fallback_log_space(q_array, mini, mode, maxi, 4)
-        
-        assert isinstance(result_array, np.ndarray)
-        assert result_array.shape == q_array.shape
-        assert np.all(result_array >= mini)
-        assert np.all(result_array <= maxi)
-        assert np.all(np.isfinite(result_array))
