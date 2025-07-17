@@ -49,7 +49,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             # Fallback to clamped ppf if log-space fails
             qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
-            results[i] = mini + (maxi - mini) * x_normalized
+            results.flat[i] = mini + (maxi - mini) * x_normalized
 
     # Returns scalar for scalar input, array for array input
     return results[0] if np.isscalar(q) else results
