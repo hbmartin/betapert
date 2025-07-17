@@ -9,6 +9,45 @@ import numpy as np
 import scipy.stats
 
 
+def _ppf_fallback_log_space(q, mini, mode, maxi, lambd=4):
+    """Use log-space to avoid numerical issues with extreme probabilities"""
+    alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
+
+    # Handle scalar and array inputs consistently
+    q = np.atleast_1d(q)
+    results = np.zeros_like(q, dtype=float)
+
+    for i, qi in enumerate(q):
+        # Clamp to avoid log(0) or log(1)
+        qi_safe = np.clip(qi, 1e-15, 1 - 1e-15)
+        log_qi = np.log(qi_safe)
+
+        # Define the equation to solve: log(CDF(x)) - log(q) = 0
+        def log_cdf_eq(x_normalized):
+            # Ensure x_normalized stays in [0,1]
+            x_clamped = np.clip(x_normalized, 1e-15, 1 - 1e-15)
+            return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
+
+        try:
+            # Use brentq with bounds instead of fsolve for more stability
+            x_normalized = scipy.optimize.brentq(log_cdf_eq, 1e-10, 1 - 1e-10)
+            results[i] = mini + (maxi - mini) * x_normalized
+
+        except (ValueError, RuntimeError):
+            # Fallback to regular ppf if log-space fails
+            try:
+                x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
+                results[i] = mini + (maxi - mini) * x_normalized
+            except:
+                # Final fallback: linear interpolation
+                results[i] = mini + qi * (maxi - mini)
+
+    return results[0] if len(results) == 1 else results
+
+_ppf_fallbacks = {
+    "log": _ppf_fallback_log_space,
+}
+
 def _calc_alpha_beta(mini, mode, maxi, lambd):
     """Calculate alpha and beta parameters for the underlying beta distribution.
 
@@ -42,9 +81,13 @@ def sf(x, mini, mode, maxi, lambd=4):
     return scipy.stats.beta.sf((x - mini) / (maxi - mini), alpha, beta)
 
 
-def ppf(q, mini, mode, maxi, lambd=4):
+def ppf(q, mini, mode, maxi, lambd=4, *, fallback=None):
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
-    return mini + (maxi - mini) * scipy.stats.beta.ppf(q, alpha, beta)
+    _beta_ppf = mini + (maxi - mini) * scipy.stats.beta.ppf(q, alpha, beta)
+    # Use fallback if any values are NaN
+    if fallback is not None and np.isnan(_beta_ppf).any():
+        return _ppf_fallbacks[fallback](q, mini, mode, maxi, lambd)
+    return _beta_ppf
 
 
 def isf(q, mini, mode, maxi, lambd=4):
