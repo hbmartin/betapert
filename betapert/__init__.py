@@ -9,6 +9,8 @@ import scipy.stats
 
 from betapert import funcs
 
+FALLBACK = None
+
 
 class PERT(scipy.stats.rv_continuous):
     """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
@@ -60,7 +62,7 @@ class PERT(scipy.stats.rv_continuous):
         return funcs.stats(mini, mode, maxi)
 
     def _ppf(self, q, mini, mode, maxi):
-        return funcs.ppf(q, mini, mode, maxi)
+        return funcs.ppf(q, mini, mode, maxi, fallback=FALLBACK)
 
     def _rvs(self, mini, mode, maxi, size=None, random_state=None):
         return funcs.rvs(mini, mode, maxi, size=size, random_state=random_state)
@@ -116,7 +118,7 @@ class ModifiedPERT(scipy.stats.rv_continuous):
         return funcs.stats(mini, mode, maxi, lambd)
 
     def _ppf(self, q, mini, mode, maxi, lambd):
-        return funcs.ppf(q, mini, mode, maxi, lambd)
+        return funcs.ppf(q, mini, mode, maxi, lambd, fallback=FALLBACK)
 
     def _rvs(self, mini, mode, maxi, lambd, size=None, random_state=None):
         return funcs.rvs(mini, mode, maxi, lambd, size=size, random_state=random_state)

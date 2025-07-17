@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "beta-pert-dist-scipy"
-version = "0.1.6"
+version = "0.1.7"
 homepage = "https://github.com/hbmartin/betapert"
 description = "Top-level package for beta-PERT distribution."
 authors = ["Tom Adamczewski <tadamczewskipublic@gmail.com>", "Harold Martin harold.martin@gmail.com"]
@@ -19,7 +19,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.11"
-scipy = "^1.14.0"
+scipy = ">=1.14.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -27,6 +27,7 @@ pytest = ">=7.2.0"
 black = {extras = ["d"], version = "*"}
 matplotlib = "^3.9.0"
 ruff = "^0.12.3"
+pytest-random-order = "^1.2.0"
 
 
 
@@ -54,7 +55,7 @@ select = ["ALL"]
 ignore = ["ANN001", "ANN201", "ANN202", "ARG001", "D203", "D205", "D213", "D400", "D415", "PLR0913"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*.py" = ["ARG002", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "NPY002", "PLR2004", "RET503", "S101"]
+"tests/*.py" = ["ANN002", "ANN003", "ARG002", "ANN206", "D100", "D101", "D102", "D103", "D104", "D200", "D212", "D401", "D404", "E501", "E731", "EM101", "NPY002", "PLR2004", "PT011", "RET503", "S101", "SLF001", "TRY003"]
 "betapert/funcs.py" = ["D103", "RUF002", "RUF003"]
 
 [tool.ruff.format]
