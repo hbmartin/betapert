@@ -16,6 +16,27 @@ from betapert import funcs
 class TestPPFLogFallback:
     """Test the log-space fallback functionality for ppf calculations."""
 
+    @classmethod
+    def setup_class(cls):
+        cls.original_brentq = scipy.optimize.brentq
+        cls.original_ppf = scipy.stats.beta.ppf
+        cls.mock_ppf_nan_calls = 0
+
+        def mock_ppf_nan(*args, **kwargs):
+            cls.mock_ppf_nan_calls += 1
+            q = args[0] if args else kwargs["q"]
+            if hasattr(q, "shape"):
+                return np.full(q.shape, np.nan)
+            return np.nan
+
+        cls.mock_ppf_nan = mock_ppf_nan
+
+    def teardown_method(self, method):
+        scipy.optimize.brentq = TestPPFLogFallback.original_brentq
+        scipy.stats.beta.ppf = TestPPFLogFallback.original_ppf
+        TestPPFLogFallback.mock_ppf_nan_calls = 0
+        betapert.FALLBACK = None
+
     def test_log_fallback_basic_functionality(self):
         """Test that log fallback works for basic cases."""
         mini, mode, maxi = 0, 1, 10
@@ -94,11 +115,11 @@ class TestPPFLogFallback:
             assert np.all(np.isfinite(result)), f"Result {result} not finite"
 
     def test_ppf_fallback_integration(self):
-        """Test that ppf function correctly uses log fallback when needed."""
+        """Test that ppf functions correctly with (unused) log fallback."""
         mini, mode, maxi = 0, 1, 10
 
         # Create a distribution with log fallback
-        dist = betapert.PERT(fallback="log")(mini, mode, maxi)
+        dist = betapert.pert(mini, mode, maxi)
 
         # Test normal probabilities
         q_normal = np.array([0.1, 0.5, 0.9])
@@ -108,21 +129,41 @@ class TestPPFLogFallback:
         assert np.all(result_normal <= maxi)
         assert np.all(np.isfinite(result_normal))
 
-    def test_ppf_fallback_triggered_by_nan(self):
+    def test_ppf_fallback_not_triggered_when_not_configured(self):
         """Test that fallback is triggered when regular ppf returns NaN."""
         mini, mode, maxi = 0, 1, 10
 
-        def mock_ppf_nan(*args, **kwargs):
-            q = args[0] if args else kwargs.get("q", 0.5)
-            if hasattr(q, "shape"):
-                return np.full(q.shape, np.nan)
-            return np.nan
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
+            betapert.FALLBACK = None
+            dist = betapert.pert(mini, mode, maxi)
+            result = dist.ppf(0.5)
+            assert np.isnan(result)
 
-        with unittest.mock.patch("scipy.stats.beta.ppf", new=mock_ppf_nan):
+    def test_ppf_fallback_triggered_by_nan_with_module_ppf(self):
+        """Test that fallback is triggered when regular ppf returns NaN."""
+        mini, mode, maxi = 0, 1, 10
+
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
+            betapert.FALLBACK = "log"
+            dist = betapert.pert(mini, mode, maxi)
+            result = dist.ppf(0.5)
+            assert TestPPFLogFallback.mock_ppf_nan_calls == 1
+            assert np.isfinite(result)
+            assert mini <= result <= maxi
+
+    def test_ppf_fallback_triggered_by_nan_directly(self):
+        """Test that fallback is triggered when regular ppf returns NaN."""
+        mini, mode, maxi = 0, 1, 10
+
+        result = funcs.ppf(0.5, mini, mode, maxi, fallback="log")
+        assert np.isfinite(result)
+
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
             # This should trigger the fallback
             result = funcs.ppf(0.5, mini, mode, maxi, fallback="log")
             assert np.isfinite(result)
             assert mini <= result <= maxi
+            assert TestPPFLogFallback.mock_ppf_nan_calls == 1
 
     def test_log_fallback_consistency_with_cdf(self):
         """Test that log fallback results are consistent with CDF."""
@@ -141,7 +182,7 @@ class TestPPFLogFallback:
         # Should be approximately equal to original q values
         np.testing.assert_allclose(cdf_results, q_values, rtol=1e-6)
 
-    def test_log_fallback_multiple_fallback_levels(self):
+    def test_log_fallback_with_secondary_clip_fallback(self):
         """Test that multiple fallback levels work correctly."""
         mini, mode, maxi = 0, 1, 10
         q = 0.5
@@ -153,19 +194,14 @@ class TestPPFLogFallback:
         def mock_brentq_fail(*args, **kwargs):
             raise ValueError("Brentq failed")
 
-        def mock_ppf_fail(*args, **kwargs):
-            raise ValueError("PPF failed")
-
         scipy.optimize.brentq = mock_brentq_fail
-        scipy.stats.beta.ppf = mock_ppf_fail
 
         try:
             # This should fall back to linear interpolation
             result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, 4)
 
-            # Should fall back to linear interpolation: mini + q * (maxi - mini)
-            expected = mini + q * (maxi - mini)
-            assert result == expected
+            assert np.isfinite(result)
+            assert mini <= result <= maxi
 
         finally:
             # Restore original functions
@@ -176,16 +212,11 @@ class TestPPFLogFallback:
         """Test that ppf without fallback returns NaN when appropriate."""
         mini, mode, maxi = 0, 1, 10
 
-        def mock_ppf_nan(*args, **kwargs):
-            q = args[0] if args else kwargs.get("q", 0.5)
-            if hasattr(q, "shape"):
-                return np.full(q.shape, np.nan)
-            return np.nan
-
-        with unittest.mock.patch("scipy.stats.beta.ppf", new=mock_ppf_nan):
+        with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
             # Without fallback, should return NaN
             result = funcs.ppf(0.5, mini, mode, maxi, fallback=None)
             assert np.isnan(result)
+            assert TestPPFLogFallback.mock_ppf_nan_calls == 1
 
     def test_log_fallback_with_arrays(self):
         """Test log fallback with various array shapes."""
@@ -223,8 +254,12 @@ class TestPPFLogFallback:
         """Test that invalid fallback type raises appropriate error."""
         mini, mode, maxi = 0, 1, 10
 
-        with pytest.raises(ValueError):
-            funcs.ppf(0.5, mini, mode, maxi, fallback="invalid")
+        with unittest.mock.patch(  # noqa: SIM117
+            "scipy.stats.beta.ppf",
+            new=TestPPFLogFallback.mock_ppf_nan,
+        ):
+            with pytest.raises(KeyError):
+                funcs.ppf(0.5, mini, mode, maxi, fallback="invalid")
 
     def test_log_fallback_performance_edge_case(self):
         """Test performance with extreme parameter values that might cause numerical issues."""

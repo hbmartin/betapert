@@ -9,6 +9,8 @@ import scipy.stats
 
 from betapert import funcs
 
+FALLBACK = None
+
 
 class PERT(scipy.stats.rv_continuous):
     """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
@@ -38,19 +40,6 @@ class PERT(scipy.stats.rv_continuous):
 
     """
 
-    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
-        """Initialize PERT distribution.
-
-        Takes all arguments from scipy.stats.rv_continuous plus:
-
-        :param fallback: Method to use when ppf calculation fails. Can be None or 'log'.
-            Defaults to None.
-            If None, returns NaN for failed calculations.
-            If 'log', uses a log-space interpolation fallback method.
-        """
-        self.fallback = kwargs.pop("fallback", None)
-        super().__init__(*args, **kwargs)
-
     def _get_support(self, mini, mode, maxi):
         return funcs.get_support(mini, mode, maxi)
 
@@ -73,7 +62,7 @@ class PERT(scipy.stats.rv_continuous):
         return funcs.stats(mini, mode, maxi)
 
     def _ppf(self, q, mini, mode, maxi):
-        return funcs.ppf(q, mini, mode, maxi, fallback=self.fallback)
+        return funcs.ppf(q, mini, mode, maxi, fallback=FALLBACK)
 
     def _rvs(self, mini, mode, maxi, size=None, random_state=None):
         return funcs.rvs(mini, mode, maxi, size=size, random_state=random_state)
@@ -129,7 +118,7 @@ class ModifiedPERT(scipy.stats.rv_continuous):
         return funcs.stats(mini, mode, maxi, lambd)
 
     def _ppf(self, q, mini, mode, maxi, lambd):
-        return funcs.ppf(q, mini, mode, maxi, lambd)
+        return funcs.ppf(q, mini, mode, maxi, lambd, fallback=FALLBACK)
 
     def _rvs(self, mini, mode, maxi, lambd, size=None, random_state=None):
         return funcs.rvs(mini, mode, maxi, lambd, size=size, random_state=random_state)
@@ -139,5 +128,4 @@ class ModifiedPERT(scipy.stats.rv_continuous):
 # to the way SciPy's ``rv_continuous`` class works. See examples of how SciPy defines their
 # distributions in ``scipy/stats/_continuous_distns.py``.
 pert = PERT()
-pert_fallback = PERT(fallback="log")
 mpert = ModifiedPERT()

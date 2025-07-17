@@ -6,17 +6,12 @@ lambda) and implements a specific statistical operation like pdf, cdf, etc.
 """
 
 import numpy as np
+import scipy.optimize
 import scipy.stats
 
 # Avoid log(0) or log(1) which would cause -inf or 0
 _CLIP_EPSILON = 1e-15
 _BRENTQ_BOUND = 1e-10
-
-
-def _clip(qi, mini, maxi):
-    lower = mini + _CLIP_EPSILON if mini >= 0 else mini - _CLIP_EPSILON
-    upper = maxi - _CLIP_EPSILON if maxi <= 1 else maxi + _CLIP_EPSILON
-    return np.clip(qi, lower, upper)
 
 
 def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
@@ -31,8 +26,8 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
         # Define the equation to solve: log(CDF(x)) - log(q) = 0
         def log_cdf_eq(x_normalized, qi=qi):  # def does not bind loop variable `qi`
             # Ensure x_normalized stays in [0,1]
-            log_qi = np.log(_clip(qi, mini, maxi))
-            x_clamped = _clip(x_normalized, mini, maxi)
+            log_qi = np.log(np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
+            x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
 
         try:
@@ -44,7 +39,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             # ValueError: Invalid function values, convergence issues, or invalid bounds
             # RuntimeError: Maximum iterations exceeded, numerical problems
             # Fallback to clamped ppf if log-space fails
-            qi_safe = _clip(qi, mini, maxi)
+            qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
             results[i] = mini + (maxi - mini) * x_normalized
 
