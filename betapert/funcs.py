@@ -25,6 +25,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     # Define the equation to solve: log(CDF(x)) - log(q) = 0
     def make_log_cdf_eq(qi_val):
         log_qi = np.log(np.clip(qi_val, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
+
         def log_cdf_eq(x_normalized):
             # Ensure x_normalized stays in [0,1]
             x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
