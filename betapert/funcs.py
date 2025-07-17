@@ -5,6 +5,8 @@ classes. Each function takes the distribution parameters (minimum, mode, maximum
 lambda) and implements a specific statistical operation like pdf, cdf, etc.
 """
 
+import sys
+
 import numpy as np
 import scipy.optimize
 import scipy.stats
@@ -13,9 +15,13 @@ import scipy.stats
 _CLIP_EPSILON = 1e-15
 _BRENTQ_BOUND = 1e-10
 
+DEBUG = False
+
 
 def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     """Use log-space to avoid numerical issues with extreme probabilities"""
+    if DEBUG:
+        sys.stderr.write(f"ppf_fallback_log_space: {q}\n")
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
 
     # Handle scalar and array inputs consistently
@@ -43,9 +49,14 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             )
             results[i] = mini + (maxi - mini) * x_normalized
 
-        except (ValueError, RuntimeError):
+        except (ValueError, RuntimeError) as e:
             # ValueError: Invalid function values, convergence issues, or invalid bounds
             # RuntimeError: Maximum iterations exceeded, numerical problems
+            if DEBUG:
+                sys.stderr.write(
+                    f"ppf_fallback_log_space first try failed, i={i}, qi={qi}\n",
+                )
+                sys.stderr.write(f"{e}\n")
             # Fallback to clamped ppf if log-space fails
             qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)

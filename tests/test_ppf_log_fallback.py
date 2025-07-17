@@ -341,3 +341,28 @@ class TestPPFLogFallback:
         assert np.all(result_array >= mini)
         assert np.all(result_array <= maxi)
         assert np.all(np.isfinite(result_array))
+
+    def test_log_fallback_3d_input(self):
+        """Test log fallback with 3D input arrays."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test 3D array input
+        q_3d = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
+        result_3d = funcs._ppf_fallback_log_space(q_3d, mini, mode, maxi, 4)
+
+        # Should preserve shape
+        assert result_3d.shape == q_3d.shape
+        assert np.all(result_3d >= mini)
+        assert np.all(result_3d <= maxi)
+        assert np.all(np.isfinite(result_3d))
+
+        # Test larger 3D array
+        q_3d_large = np.array(
+            [[[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], [[0.7, 0.8, 0.9], [0.95, 0.98, 0.99]]],
+        )
+        result_3d_large = funcs._ppf_fallback_log_space(q_3d_large, mini, mode, maxi, 4)
+
+        assert result_3d_large.shape == q_3d_large.shape
+        assert np.all(result_3d_large >= mini)
+        assert np.all(result_3d_large <= maxi)
+        assert np.all(np.isfinite(result_3d_large))
