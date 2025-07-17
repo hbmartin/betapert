@@ -1,0 +1,258 @@
+"""
+Test the ppf log fallback functionality.
+"""
+
+import numpy as np
+import pytest
+import scipy.optimize
+import scipy.stats
+
+import betapert
+from betapert import funcs
+
+
+class TestPPFLogFallback:
+    """Test the log-space fallback functionality for ppf calculations."""
+
+    def test_log_fallback_basic_functionality(self):
+        """Test that log fallback works for basic cases."""
+        mini, mode, maxi = 0, 1, 10
+        q = np.array([0.1, 0.5, 0.9])
+
+        # Test direct fallback function
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+
+        # Should return valid values within bounds
+        assert np.all(result >= mini)
+        assert np.all(result <= maxi)
+        assert np.all(np.isfinite(result))
+
+        # Should be monotonic
+        assert np.all(np.diff(result) >= 0)
+
+    def test_log_fallback_extreme_probabilities(self):
+        """Test log fallback with extreme probability values."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test very small probabilities
+        q_small = np.array([1e-10, 1e-15, 1e-20])
+        result_small = funcs._ppf_fallback_log_space(q_small, mini, mode, maxi)
+
+        assert np.all(result_small >= mini)
+        assert np.all(result_small <= maxi)
+        assert np.all(np.isfinite(result_small))
+
+        # Test very large probabilities
+        q_large = np.array([1 - 1e-10, 1 - 1e-15, 1 - 1e-20])
+        result_large = funcs._ppf_fallback_log_space(q_large, mini, mode, maxi)
+
+        assert np.all(result_large >= mini)
+        assert np.all(result_large <= maxi)
+        assert np.all(np.isfinite(result_large))
+
+    def test_log_fallback_edge_cases(self):
+        """Test log fallback with edge case probabilities."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test q = 0 and q = 1 (should be clamped internally)
+        q_edge = np.array([0, 1])
+        result_edge = funcs._ppf_fallback_log_space(q_edge, mini, mode, maxi)
+
+        assert np.all(result_edge >= mini)
+        assert np.all(result_edge <= maxi)
+        assert np.all(np.isfinite(result_edge))
+
+    def test_log_fallback_scalar_input(self):
+        """Test that log fallback works with scalar input."""
+        mini, mode, maxi = 0, 1, 10
+        q = 0.5
+
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+
+        assert isinstance(result, (int, float, np.number))
+        assert mini <= result <= maxi
+        assert np.isfinite(result)
+
+    def test_log_fallback_different_parameters(self):
+        """Test log fallback with different parameter combinations."""
+        test_cases = [
+            (0, 1, 10, 4),
+            (-5, 0, 5, 2),
+            (100, 150, 200, 6),
+            (0.1, 0.2, 0.3, 3),
+        ]
+
+        q = np.array([0.1, 0.5, 0.9])
+
+        for mini, mode, maxi, lambd in test_cases:
+            result = funcs._ppf_fallback_log_space(q, mini, mode, maxi, lambd)
+
+            assert np.all(result >= mini), f"Result {result} not >= {mini}"
+            assert np.all(result <= maxi), f"Result {result} not <= {maxi}"
+            assert np.all(np.isfinite(result)), f"Result {result} not finite"
+
+    def test_ppf_fallback_integration(self):
+        """Test that ppf function correctly uses log fallback when needed."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Create a distribution with log fallback
+        dist = betapert.PERT(fallback="log")(mini, mode, maxi)
+
+        # Test normal probabilities
+        q_normal = np.array([0.1, 0.5, 0.9])
+        result_normal = dist.ppf(q_normal)
+
+        assert np.all(result_normal >= mini)
+        assert np.all(result_normal <= maxi)
+        assert np.all(np.isfinite(result_normal))
+
+    def test_ppf_fallback_triggered_by_nan(self):
+        """Test that fallback is triggered when regular ppf returns NaN."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Mock scipy.stats.beta.ppf to return NaN
+        original_ppf = scipy.stats.beta.ppf
+
+        def mock_ppf_nan(*args, **kwargs):
+            return np.nan
+
+        scipy.stats.beta.ppf = mock_ppf_nan
+
+        try:
+            # This should trigger the fallback
+            result = funcs.ppf(0.5, mini, mode, maxi, fallback="log")
+
+            assert np.isfinite(result)
+            assert mini <= result <= maxi
+
+        finally:
+            # Restore original function
+            scipy.stats.beta.ppf = original_ppf
+
+    def test_log_fallback_consistency_with_cdf(self):
+        """Test that log fallback results are consistent with CDF."""
+        mini, mode, maxi = 0, 1, 10
+        lambd = 4
+
+        # Test several probability values
+        q_values = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+
+        # Get ppf results using log fallback
+        ppf_results = funcs._ppf_fallback_log_space(q_values, mini, mode, maxi, lambd)
+
+        # Verify by computing CDF of the results
+        cdf_results = funcs.cdf(ppf_results, mini, mode, maxi, lambd)
+
+        # Should be approximately equal to original q values
+        np.testing.assert_allclose(cdf_results, q_values, rtol=1e-6)
+
+    def test_log_fallback_multiple_fallback_levels(self):
+        """Test that multiple fallback levels work correctly."""
+        mini, mode, maxi = 0, 1, 10
+        q = 0.5
+
+        # Mock both scipy functions to fail
+        original_brentq = scipy.optimize.brentq
+        original_ppf = scipy.stats.beta.ppf
+
+        def mock_brentq_fail(*args, **kwargs):
+            raise ValueError("Brentq failed")
+
+        def mock_ppf_fail(*args, **kwargs):
+            raise ValueError("PPF failed")
+
+        scipy.optimize.brentq = mock_brentq_fail
+        scipy.stats.beta.ppf = mock_ppf_fail
+
+        try:
+            # This should fall back to linear interpolation
+            result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+
+            # Should fall back to linear interpolation: mini + q * (maxi - mini)
+            expected = mini + q * (maxi - mini)
+            assert result == expected
+
+        finally:
+            # Restore original functions
+            scipy.optimize.brentq = original_brentq
+            scipy.stats.beta.ppf = original_ppf
+
+    def test_ppf_without_fallback_returns_nan(self):
+        """Test that ppf without fallback returns NaN when appropriate."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Mock scipy.stats.beta.ppf to return NaN
+        original_ppf = scipy.stats.beta.ppf
+
+        def mock_ppf_nan(*args, **kwargs):
+            return np.nan
+
+        scipy.stats.beta.ppf = mock_ppf_nan
+
+        try:
+            # Without fallback, should return NaN
+            result = funcs.ppf(0.5, mini, mode, maxi, fallback=None)
+            assert np.isnan(result)
+
+        finally:
+            # Restore original function
+            scipy.stats.beta.ppf = original_ppf
+
+    def test_log_fallback_with_arrays(self):
+        """Test log fallback with various array shapes."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Test 1D array
+        q_1d = np.array([0.1, 0.5, 0.9])
+        result_1d = funcs._ppf_fallback_log_space(q_1d, mini, mode, maxi)
+
+        assert result_1d.shape == q_1d.shape
+        assert np.all(result_1d >= mini)
+        assert np.all(result_1d <= maxi)
+
+        # Test 2D array
+        q_2d = np.array([[0.1, 0.5], [0.7, 0.9]])
+        result_2d = funcs._ppf_fallback_log_space(q_2d, mini, mode, maxi)
+
+        assert result_2d.shape == q_2d.shape
+        assert np.all(result_2d >= mini)
+        assert np.all(result_2d <= maxi)
+
+    def test_log_fallback_monotonicity(self):
+        """Test that log fallback preserves monotonicity."""
+        mini, mode, maxi = 0, 1, 10
+
+        # Create monotonic sequence of probabilities
+        q_values = np.linspace(0.01, 0.99, 20)
+
+        result = funcs._ppf_fallback_log_space(q_values, mini, mode, maxi)
+
+        # Check that results are monotonic
+        assert np.all(np.diff(result) >= 0), "Results should be monotonic"
+
+    def test_invalid_fallback_type(self):
+        """Test that invalid fallback type raises appropriate error."""
+        mini, mode, maxi = 0, 1, 10
+
+        with pytest.raises(KeyError):
+            funcs.ppf(0.5, mini, mode, maxi, fallback="invalid")
+
+    def test_log_fallback_performance_edge_case(self):
+        """Test performance with extreme parameter values that might cause numerical issues."""
+        # Very small range
+        mini, mode, maxi = 0, 1e-10, 1e-9
+        q = np.array([0.1, 0.5, 0.9])
+
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+
+        assert np.all(result >= mini)
+        assert np.all(result <= maxi)
+        assert np.all(np.isfinite(result))
+
+        # Very large range
+        mini, mode, maxi = 0, 1e6, 1e10
+        result = funcs._ppf_fallback_log_space(q, mini, mode, maxi)
+
+        assert np.all(result >= mini)
+        assert np.all(result <= maxi)
+        assert np.all(np.isfinite(result))

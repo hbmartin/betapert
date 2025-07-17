@@ -9,7 +9,8 @@ import scipy.stats
 
 from betapert import funcs
 
-_fallbacks = { None, "log" }
+_FALLBACKS = {None, "log"}
+
 
 class PERT(scipy.stats.rv_continuous):
     """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
@@ -40,8 +41,9 @@ class PERT(scipy.stats.rv_continuous):
     """
 
     def __init__(self, *args, **kwargs):
-        self.fallback = kwargs.pop('fallback', None)
-        assert self.fallback in _fallbacks, "Invalid fallback value"
+        self.fallback = kwargs.pop("fallback", None)
+        if self.fallback not in _FALLBACKS:
+            raise ValueError(f"Invalid fallback value: '{self.fallback}'")
         super().__init__(*args, **kwargs)
 
     def _get_support(self, mini, mode, maxi):
@@ -132,4 +134,5 @@ class ModifiedPERT(scipy.stats.rv_continuous):
 # to the way SciPy's ``rv_continuous`` class works. See examples of how SciPy defines their
 # distributions in ``scipy/stats/_continuous_distns.py``.
 pert = PERT()
+pert_fallback = PERT(fallback="log")
 mpert = ModifiedPERT()
