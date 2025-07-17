@@ -19,20 +19,20 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
 
     # Handle scalar and array inputs consistently
-    q = np.atleast_1d(q)
-    results = np.zeros_like(q, dtype=float)
+    _q = np.atleast_1d(q)
+    results = np.zeros_like(_q, dtype=float)
 
     # Define the equation to solve: log(CDF(x)) - log(q) = 0
     def make_log_cdf_eq(qi_val):
+        log_qi = np.log(np.clip(qi_val, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
         def log_cdf_eq(x_normalized):
             # Ensure x_normalized stays in [0,1]
-            log_qi = np.log(np.clip(qi_val, _CLIP_EPSILON, 1 - _CLIP_EPSILON))
             x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
 
         return log_cdf_eq
 
-    for i, qi in enumerate(q):
+    for i, qi in enumerate(_q.flat):
         try:
             # Use brentq instead of fsolve, guaranteed convergence within bounds
             x_normalized = scipy.optimize.brentq(
@@ -40,7 +40,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
                 _BRENTQ_BOUND,
                 1 - _BRENTQ_BOUND,
             )
-            results[i] = mini + (maxi - mini) * x_normalized
+            results.flat[i] = mini + (maxi - mini) * x_normalized
 
         except (ValueError, RuntimeError):
             # ValueError: Invalid function values, convergence issues, or invalid bounds
@@ -51,7 +51,7 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             results[i] = mini + (maxi - mini) * x_normalized
 
     # Returns scalar for scalar input, array for array input
-    return results[0] if len(results) == 1 else results
+    return results[0] if np.isscalar(q) else results
 
 
 _ppf_fallbacks = {
@@ -96,7 +96,7 @@ def ppf(q, mini, mode, maxi, lambd=4, *, fallback=None):
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
     _beta_ppf = mini + (maxi - mini) * scipy.stats.beta.ppf(q, alpha, beta)
     # Use fallback if any values are NaN
-    if fallback is not None and np.any(np.isnan(_beta_ppf)):
+    if fallback is not None and np.any(np.atleast_1d(np.isnan(_beta_ppf))):
         return _ppf_fallbacks[fallback](q, mini, mode, maxi, lambd)
     return _beta_ppf
 

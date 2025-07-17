@@ -137,6 +137,7 @@ class TestPPFLogFallback:
             dist = betapert.pert(mini, mode, maxi)
             result = dist.ppf(0.5)
             assert np.isnan(result)
+            assert TestPPFLogFallback.mock_ppf_nan_calls == 1
 
     def test_ppf_fallback_triggered_by_nan_with_module_ppf(self):
         """Test that fallback is triggered when regular ppf returns NaN."""
@@ -312,7 +313,7 @@ class TestPPFLogFallback:
         result_scalar = funcs._ppf_fallback_log_space(q_scalar, mini, mode, maxi, 4)
 
         # Should return scalar, not array
-        assert isinstance(result_scalar, (int, float, np.number))
+        assert isinstance(result_scalar, np.number)
         assert not isinstance(result_scalar, np.ndarray)
         assert mini <= result_scalar <= maxi
         assert np.isfinite(result_scalar)
@@ -321,9 +322,8 @@ class TestPPFLogFallback:
         q_single = np.array([0.5])
         result_single = funcs._ppf_fallback_log_space(q_single, mini, mode, maxi, 4)
 
-        # Should return scalar for single-element array
-        assert isinstance(result_single, (int, float, np.number))
-        assert not isinstance(result_single, np.ndarray)
+        # Should return single-element array
+        assert isinstance(result_single, np.ndarray)
         assert mini <= result_single <= maxi
         assert np.isfinite(result_single)
 
