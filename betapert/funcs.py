@@ -21,8 +21,12 @@ DEBUG = False
 def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
     """Use log-space to avoid numerical issues with extreme probabilities"""
     if DEBUG:
-        sys.stderr.write(f"ppf_fallback_log_space: {q}\n")
+        sys.stderr.write(
+            f"PLF: len(q)={len(q)}, mini={mini}, mode={mode}, maxi={maxi}, lambd={lambd}\n",
+        )
     alpha, beta = _calc_alpha_beta(mini, mode, maxi, lambd)
+    if DEBUG:
+        sys.stderr.write(f"PLF: alpha={alpha}, beta={beta}\n")
 
     # Handle scalar and array inputs consistently
     _q = np.atleast_1d(q)
@@ -35,6 +39,10 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
         def log_cdf_eq(x_normalized):
             # Ensure x_normalized stays in [0,1]
             x_clamped = np.clip(x_normalized, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
+            if DEBUG:
+                sys.stderr.write(
+                    f"PLF: x_clamped={x_clamped}, qi_val={qi_val}\n",
+                )
             return scipy.stats.beta.logcdf(x_clamped, alpha, beta) - log_qi
 
         return log_cdf_eq
@@ -54,12 +62,16 @@ def _ppf_fallback_log_space(q, mini, mode, maxi, lambd):
             # RuntimeError: Maximum iterations exceeded, numerical problems
             if DEBUG:
                 sys.stderr.write(
-                    f"ppf_fallback_log_space first try failed, i={i}, qi={qi}\n",
+                    f"PLF: first try failed, i={i}, qi={qi}\n",
                 )
                 sys.stderr.write(f"{e}\n")
             # Fallback to clamped ppf if log-space fails
             qi_safe = np.clip(qi, _CLIP_EPSILON, 1 - _CLIP_EPSILON)
             x_normalized = scipy.stats.beta.ppf(qi_safe, alpha, beta)
+            if DEBUG:
+                sys.stderr.write(
+                    f"PLF: second try: qi={qi}, qi_safe={qi_safe}, x_normalized={x_normalized}\n",
+                )
             results[i] = mini + (maxi - mini) * x_normalized
 
     # Returns scalar for scalar input, array for array input
