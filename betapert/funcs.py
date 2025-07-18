@@ -83,7 +83,12 @@ _ppf_fallbacks = {
 }
 
 
-def _calc_alpha_beta(mini, mode, maxi, lambd):
+def _calc_alpha_beta(
+    mini: np.float64 | np.ndarray | float | int,
+    mode: np.float64 | np.ndarray | float | int,
+    maxi: np.float64 | np.ndarray | float | int,
+    lambd: np.float64 | np.ndarray | float | int,
+) -> tuple[np.float64 | np.ndarray | float | int, np.float64 | np.ndarray | float | int]:
     """Calculate alpha and beta parameters for the underlying beta distribution.
 
     Args:
@@ -98,6 +103,21 @@ def _calc_alpha_beta(mini, mode, maxi, lambd):
     """
     alpha = 1 + ((mode - mini) * lambd) / (maxi - mini)
     beta = 1 + ((maxi - mode) * lambd) / (maxi - mini)
+    # If alpha and beta are arrays and all elements are equal, return the scalar value
+    if DEBUG and (
+        isinstance(mini, np.ndarray)
+        and isinstance(mode, np.ndarray)
+        or isinstance(maxi, np.ndarray)
+        or isinstance(lambd, np.ndarray)
+    ):
+        sys.stderr.write(
+            f"CAB: unexpected array parameters: mini={mini}, mode={mode}, maxi={maxi}, lambd={lambd}\n"
+        )
+    if isinstance(alpha, np.ndarray) and isinstance(beta, np.ndarray):
+        if np.all(alpha == alpha.flat[0]) and np.all(beta == beta.flat[0]):
+            return alpha[0], beta[0]
+        elif DEBUG:
+            sys.stderr.write(f"CAB: Unexpected arrays: alpha={alpha}, beta={beta}\n")
     return alpha, beta
 
 
