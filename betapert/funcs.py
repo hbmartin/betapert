@@ -84,7 +84,7 @@ _ppf_fallbacks = {
 
 
 def _scalar_if_array_all_equal(array: np.ndarray | float) -> np.float64 | np.ndarray | float:
-    if isinstance(array, np.ndarray) and np.all(array == array[0]):
+    if isinstance(array, np.ndarray) and array.size != 0 and np.all(array == array[0]):
         return array[0]
     return array
 
@@ -113,10 +113,9 @@ def _calc_alpha_beta(
     if DEBUG and any(isinstance(x, np.ndarray) for x in (mini, mode, maxi, lambd)):
         sys.stderr.write("CAB: unexpected arrays in method parameters\n")
     if isinstance(alpha, np.ndarray) and isinstance(beta, np.ndarray):
-        if np.all(alpha == alpha[0]) and np.all(beta == beta[0]):
-            return _scalar_if_array_all_equal(alpha), _scalar_if_array_all_equal(beta)
         if DEBUG:
             sys.stderr.write(f"CAB: Unexpected arrays: alpha={alpha}, beta={beta}\n")
+        return _scalar_if_array_all_equal(alpha), _scalar_if_array_all_equal(beta)
     return alpha, beta
 
 
