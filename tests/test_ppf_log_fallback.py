@@ -366,3 +366,31 @@ class TestPPFLogFallback:
         assert np.all(result_3d_large >= mini)
         assert np.all(result_3d_large <= maxi)
         assert np.all(np.isfinite(result_3d_large))
+
+    def test_calc_alpha_beta_array_args_all_equal(self):
+        """Test _calc_alpha_beta returns scalars when all array elements are equal."""
+        mini = np.array([0.0, 0.0, 0.0])
+        mode = np.array([1.0, 1.0, 1.0])
+        maxi = np.array([10.0, 10.0, 10.0])
+        lambd = np.array([4.0, 4.0, 4.0])
+        alpha, beta = funcs._calc_alpha_beta(mini, mode, maxi, lambd)
+        assert np.isscalar(alpha)
+        assert np.isscalar(beta)
+        # Should match the scalar computation
+        alpha_scalar, beta_scalar = funcs._calc_alpha_beta(0.0, 1.0, 10.0, 4.0)
+        assert alpha == alpha_scalar
+        assert beta == beta_scalar
+
+    def test_calc_alpha_beta_array_args_not_all_equal(self):
+        """Test _calc_alpha_beta returns arrays when not all elements are equal."""
+        mini = np.array([0.0, 0.0, 0.0])
+        mode = np.array([1.0, 2.0, 3.0])
+        maxi = np.array([10.0, 10.0, 10.0])
+        lambd = np.array([4.0, 4.0, 4.0])
+        alpha, beta = funcs._calc_alpha_beta(mini, mode, maxi, lambd)
+        assert isinstance(alpha, np.ndarray)
+        assert isinstance(beta, np.ndarray)
+        assert alpha.shape == mode.shape
+        assert beta.shape == mode.shape
+        # Should not be all equal
+        assert not np.all(alpha == alpha[0]) or not np.all(beta == beta[0])
