@@ -97,8 +97,10 @@ def _ppf_fallback_log_space(
                 )
             results[i] = _mini[i] + (_maxi[i] - _mini[i]) * x_normalized
 
-    # Returns scalar for scalar input, array for array input
-    return results[0] if np.isscalar(q) else results
+    # Returns a scalar only when every input is scalar; a scalar q with array
+    # parameters must still broadcast to an array result.
+    all_scalar = np.broadcast(q, mini, mode, maxi, lambd).shape == ()
+    return results[0] if all_scalar else results
 
 
 _ppf_fallbacks = {

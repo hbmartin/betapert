@@ -367,6 +367,22 @@ class TestPPFLogFallback:
         assert np.all(result_3d_large <= maxi)
         assert np.all(np.isfinite(result_3d_large))
 
+    def test_log_fallback_scalar_q_array_params(self):
+        """A scalar q with array parameters must broadcast, not collapse to a scalar."""
+        mini = np.array([0.0, 1.0])
+        mode = np.array([2.0, 3.0])
+        maxi = np.array([5.0, 10.0])
+
+        result = funcs._ppf_fallback_log_space(0.5, mini, mode, maxi, 4)
+
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (2,)
+        elementwise = [
+            funcs._ppf_fallback_log_space(0.5, m, mo, ma, 4)
+            for m, mo, ma in zip(mini, mode, maxi, strict=True)
+        ]
+        assert result == pytest.approx(np.array(elementwise))
+
     def test_calc_alpha_beta_array_args_all_equal(self):
         """Test _calc_alpha_beta broadcasts arrays element-wise."""
         mini = np.array([0.0, 0.0, 0.0])
