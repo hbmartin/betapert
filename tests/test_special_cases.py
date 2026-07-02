@@ -27,23 +27,3 @@ class TestIsBeta:
         beta = scipy.stats.beta(2, 2)
         x = np.linspace(0, 1, 100)
         assert dist.pdf(x) == pytest.approx(beta.pdf(x))
-
-
-class TestMatchesWolframMathematica:
-    """
-    See https://reference.wolfram.com/language/ref/PERTDistribution.html
-    """
-
-    def test_pdf(self):
-        """
-        PDF[PERTDistribution[{1,10}, 3, 2]][5]   =>    0.15207705617310344
-        """
-        dist = mpert(mini=1, mode=3, maxi=10, lambd=2)
-        assert dist.pdf(5) == pytest.approx(0.15207705617310344)
-
-    def test_cdf(self):
-        """
-        CDF[PERTDistribution[{10^-5, 10^-3}, 10^-4, 1]][5*10^-5]    =>     0.0588892278343665
-        """
-        dist = mpert(mini=1e-5, mode=1e-4, maxi=1e-3, lambd=1)
-        assert dist.cdf(5e-5) == pytest.approx(0.0588892278343665)

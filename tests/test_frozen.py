@@ -57,13 +57,13 @@ def test(dist_pair, method):
     elif isinstance(frozen.dist, betapert.PERT):
         nonfrozen_method = getattr(nonfrozen(mini, mode, maxi), method)
 
-    if method in ["moment"]:
+    if method == "moment":
         frozen_value = frozen_method(order)
         nonfrozen_value = nonfrozen_method(order)
     elif method in ["ppf", "isf"]:
         frozen_value = frozen_method(q)
         nonfrozen_value = nonfrozen_method(q)
-    elif method in ["interval"]:
+    elif method == "interval":
         frozen_value = frozen_method(confidence)
         nonfrozen_value = nonfrozen_method(confidence)
     elif method in ["pdf", "logpdf", "cdf", "logcdf", "sf", "logsf"]:

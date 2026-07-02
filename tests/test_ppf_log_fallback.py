@@ -35,7 +35,7 @@ class TestPPFLogFallback:
         scipy.optimize.brentq = TestPPFLogFallback.original_brentq
         scipy.stats.beta.ppf = TestPPFLogFallback.original_ppf
         TestPPFLogFallback.mock_ppf_nan_calls = 0
-        betapert.FALLBACK = None
+        betapert.FALLBACK = "log"
 
     def test_log_fallback_basic_functionality(self):
         """Test that log fallback works for basic cases."""
@@ -129,22 +129,22 @@ class TestPPFLogFallback:
         assert np.all(result_normal <= maxi)
         assert np.all(np.isfinite(result_normal))
 
-    def test_ppf_fallback_not_triggered_when_not_configured(self):
-        """Test that fallback is NOT triggered by default when regular ppf returns NaN."""
+    def test_ppf_fallback_not_triggered_when_disabled(self):
+        """Test that fallback is NOT triggered when disabled and regular ppf returns NaN."""
         mini, mode, maxi = 0, 1, 10
 
         with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
+            betapert.FALLBACK = None
             dist = betapert.pert(mini, mode, maxi)
             result = dist.ppf(0.5)
             assert np.isnan(result)
             assert TestPPFLogFallback.mock_ppf_nan_calls == 1
 
-    def test_ppf_fallback_triggered_by_nan_with_module_ppf(self):
-        """Test that fallback is triggered when regular ppf returns NaN."""
+    def test_ppf_fallback_triggered_by_nan_by_default(self):
+        """Test that the log fallback is enabled by default when regular ppf returns NaN."""
         mini, mode, maxi = 0, 1, 10
 
         with unittest.mock.patch("scipy.stats.beta.ppf", new=TestPPFLogFallback.mock_ppf_nan):
-            betapert.FALLBACK = "log"
             dist = betapert.pert(mini, mode, maxi)
             result = dist.ppf(0.5)
             assert TestPPFLogFallback.mock_ppf_nan_calls == 1
@@ -368,18 +368,18 @@ class TestPPFLogFallback:
         assert np.all(np.isfinite(result_3d_large))
 
     def test_calc_alpha_beta_array_args_all_equal(self):
-        """Test _calc_alpha_beta returns scalars when all array elements are equal."""
+        """Test _calc_alpha_beta broadcasts arrays element-wise."""
         mini = np.array([0.0, 0.0, 0.0])
         mode = np.array([1.0, 1.0, 1.0])
         maxi = np.array([10.0, 10.0, 10.0])
         lambd = np.array([4.0, 4.0, 4.0])
         alpha, beta = funcs._calc_alpha_beta(mini, mode, maxi, lambd)
-        assert np.isscalar(alpha)
-        assert np.isscalar(beta)
-        # Should match the scalar computation
+        assert alpha.shape == mode.shape
+        assert beta.shape == mode.shape
+        # Each element should match the scalar computation
         alpha_scalar, beta_scalar = funcs._calc_alpha_beta(0.0, 1.0, 10.0, 4.0)
-        assert alpha == alpha_scalar
-        assert beta == beta_scalar
+        assert np.all(alpha == alpha_scalar)
+        assert np.all(beta == beta_scalar)
 
     def test_calc_alpha_beta_array_args_not_all_equal(self):
         """Test _calc_alpha_beta returns arrays when not all elements are equal."""
