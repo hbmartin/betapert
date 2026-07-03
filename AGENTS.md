@@ -1,0 +1,4 @@
+- Never assume values for maxi or mini
+- Always use uv to run python commands e.g. `uv run pytest`
+- After making changes, remind me that I may want to bump the version number
+- when testing _ppf_fallback_log_space, you probably dont need mocks (but don't remove any that already exist)
