@@ -1,9 +1,20 @@
-exclude: 'docs|node_modules|migrations|.git|.tox'
-default_stages: [commit]
+exclude: 'node_modules|migrations|.git|.tox'
+default_stages: [pre-commit]
 fail_fast: true
 
 repos:
-  - repo: https://github.com/psf/black
-    rev: 22.10.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
     hooks:
-      - id: black
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format

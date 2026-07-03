@@ -1,18 +1,71 @@
-"""Arbitrary parameters in SciPy's ``rv_continuous`` class must be 'shape' parameters.
-Optional shape parameters are not supported, and are seemingly impossible to implement
-without egregious hacks. So there are two classes, one for the PERT distribution
-(with ``lambd=4``) and one for the modified PERT distribution (with ``lambd`` as a shape parameter).
-Beyond being repetitious, this also adversely affects the user-facing API.
+"""The PERT (beta-PERT) and modified PERT distributions for SciPy.
+
+Arbitrary parameters in SciPy's ``rv_continuous`` class must be 'shape' parameters.
+Optional shape parameters are not supported, so there are two distributions: ``pert``
+(with ``lambd`` fixed to 4) and ``mpert`` (with ``lambd`` as a fourth shape parameter).
+Both delegate to a shared base class; only the parameter unpacking differs.
+
+``FALLBACK`` selects the strategy used when SciPy's beta quantile function returns NaN
+(which can happen for extreme probabilities). It defaults to ``"log"``, which solves for
+the quantile in log-probability space. Set ``betapert.FALLBACK = None`` to disable it.
 """
 
 import scipy.stats
 
 from betapert import funcs
+from betapert.funcs import FloatOrArray, fit
 
-FALLBACK = None
+__all__ = ["FALLBACK", "PERT", "ModifiedPERT", "fit", "mpert", "pert"]
+
+FALLBACK = "log"
 
 
-class PERT(scipy.stats.rv_continuous):
+class _BasePERT(scipy.stats.rv_continuous):
+    """Delegates every ``rv_continuous`` hook to :mod:`betapert.funcs`.
+
+    Subclasses define ``_unpack`` to map their shape arguments to the full
+    ``(mini, mode, maxi, lambd)`` tuple.
+    """
+
+    @staticmethod
+    def _unpack(args: tuple) -> tuple[FloatOrArray, FloatOrArray, FloatOrArray, FloatOrArray]:
+        raise NotImplementedError
+
+    def _get_support(self, *args, **kwargs):
+        return funcs.get_support(*self._unpack(args))
+
+    def _argcheck(self, *args):
+        return funcs.argcheck(*self._unpack(args))
+
+    def _pdf(self, x, *args):
+        return funcs.pdf(x, *self._unpack(args))
+
+    def _cdf(self, x, *args):
+        return funcs.cdf(x, *self._unpack(args))
+
+    def _sf(self, x, *args):
+        return funcs.sf(x, *self._unpack(args))
+
+    def _isf(self, q, *args):
+        return funcs.isf(q, *self._unpack(args))
+
+    def _stats(self, *args, **kwds):
+        return funcs.stats(*self._unpack(args))
+
+    def _entropy(self, *args):
+        return funcs.entropy(*self._unpack(args))
+
+    def _munp(self, n, *args):
+        return funcs.munp(n, *self._unpack(args))
+
+    def _ppf(self, q, *args):
+        return funcs.ppf(q, *self._unpack(args), fallback=FALLBACK)
+
+    def _rvs(self, *args, size=None, random_state=None):
+        return funcs.rvs(*self._unpack(args), size=size, random_state=random_state)
+
+
+class PERT(_BasePERT):
     """The `PERT distribution <https://en.wikipedia.org/wiki/PERT_distribution>`_ is defined by the
     minimum, most likely, and maximum values that a variable can take. It is commonly used to
     elicit subjective beliefs. PERT is an alternative to the triangular distribution, but has a
@@ -40,35 +93,13 @@ class PERT(scipy.stats.rv_continuous):
 
     """
 
-    def _get_support(self, mini, mode, maxi):
-        return funcs.get_support(mini, mode, maxi)
-
-    def _argcheck(self, mini, mode, maxi):
-        return funcs.argcheck(mini, mode, maxi)
-
-    def _pdf(self, x, mini, mode, maxi):
-        return funcs.pdf(x, mini, mode, maxi)
-
-    def _cdf(self, x, mini, mode, maxi):
-        return funcs.cdf(x, mini, mode, maxi)
-
-    def _sf(self, x, mini, mode, maxi):
-        return funcs.sf(x, mini, mode, maxi)
-
-    def _isf(self, x, mini, mode, maxi):
-        return funcs.isf(x, mini, mode, maxi)
-
-    def _stats(self, mini, mode, maxi):
-        return funcs.stats(mini, mode, maxi)
-
-    def _ppf(self, q, mini, mode, maxi):
-        return funcs.ppf(q, mini, mode, maxi, fallback=FALLBACK)
-
-    def _rvs(self, mini, mode, maxi, size=None, random_state=None):
-        return funcs.rvs(mini, mode, maxi, size=size, random_state=random_state)
+    @staticmethod
+    def _unpack(args: tuple) -> tuple[FloatOrArray, FloatOrArray, FloatOrArray, FloatOrArray]:
+        mini, mode, maxi = args
+        return mini, mode, maxi, 4
 
 
-class ModifiedPERT(scipy.stats.rv_continuous):
+class ModifiedPERT(_BasePERT):
     """The modified PERT distribution generalizes the PERT distribution by adding a fourth parameter
     ``lambd`` that controls how much weight is given to the mode. ``lambd=4`` corresponds to the
     traditional PERT distribution.
@@ -96,36 +127,13 @@ class ModifiedPERT(scipy.stats.rv_continuous):
 
     """
 
-    def _get_support(self, mini, mode, maxi, lambd):
-        return funcs.get_support(mini, mode, maxi, lambd)
-
-    def _argcheck(self, mini, mode, maxi, lambd):
-        return funcs.argcheck(mini, mode, maxi, lambd)
-
-    def _pdf(self, x, mini, mode, maxi, lambd):
-        return funcs.pdf(x, mini, mode, maxi, lambd)
-
-    def _cdf(self, x, mini, mode, maxi, lambd):
-        return funcs.cdf(x, mini, mode, maxi, lambd)
-
-    def _sf(self, x, mini, mode, maxi, lambd):
-        return funcs.sf(x, mini, mode, maxi, lambd)
-
-    def _isf(self, x, mini, mode, maxi, lambd):
-        return funcs.isf(x, mini, mode, maxi, lambd)
-
-    def _stats(self, mini, mode, maxi, lambd):
-        return funcs.stats(mini, mode, maxi, lambd)
-
-    def _ppf(self, q, mini, mode, maxi, lambd):
-        return funcs.ppf(q, mini, mode, maxi, lambd, fallback=FALLBACK)
-
-    def _rvs(self, mini, mode, maxi, lambd, size=None, random_state=None):
-        return funcs.rvs(mini, mode, maxi, lambd, size=size, random_state=random_state)
+    @staticmethod
+    def _unpack(args: tuple) -> tuple[FloatOrArray, FloatOrArray, FloatOrArray, FloatOrArray]:
+        return args
 
 
 # ``pert`` and ``mpert`` being instances, not classes, is not IMO idiomatic Python, but it is core
 # to the way SciPy's ``rv_continuous`` class works. See examples of how SciPy defines their
 # distributions in ``scipy/stats/_continuous_distns.py``.
-pert = PERT()
-mpert = ModifiedPERT()
+pert = PERT(name="pert", shapes="mini, mode, maxi")
+mpert = ModifiedPERT(name="mpert", shapes="mini, mode, maxi, lambd")

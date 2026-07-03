@@ -38,7 +38,7 @@ class TestKnownProperties:
         )
         if not optimize_result.success:
             msg = (
-                f"scipy config: {scipy.show_config(mode = 'dicts')}\n"
+                f"scipy config: {scipy.show_config(mode='dicts')}\n"
                 f"Function value: {optimize_result.fun}\n"
                 f"Gradient norm: {np.linalg.norm(optimize_result.jac) if optimize_result.jac is not None else 'N/A'}\n"
                 f"Iterations: {optimize_result.nit}\n"
@@ -57,7 +57,7 @@ class TestKnownProperties:
 
     def test_support(self, mpert, params, lambd):
         """The support is the interval [mini, maxi]."""
-        mini, mode, maxi = params
+        mini, _mode, maxi = params
         assert mpert.support() == (mini, maxi)
 
 
@@ -83,8 +83,7 @@ class TestClosedFormExpressions:
         closed_form = mpert.stats(moments="s")  # This eventually calls our closed-form formula
         numerical = mpert.expect(
             # Fisher's skewness: third standardized moment
-            lambda x: ((x - mpert.mean()) / mpert.std())
-            ** 3,
+            lambda x: ((x - mpert.mean()) / mpert.std()) ** 3,
         )
         assert closed_form == pytest.approx(numerical)
 
@@ -99,7 +98,7 @@ class TestRvs:
         return mpert.rvs(size=100_000)
 
     def test_rvs_support(self, rvs, mpert, params, lambd):
-        mini, mode, maxi = params
+        mini, _mode, maxi = params
         assert np.all((rvs >= mini) & (rvs <= maxi))
 
     def test_rvs_moments(self, rvs, mpert, params, lambd):

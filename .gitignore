@@ -40,3 +40,7 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 
+
+# Test artifacts
+.coverage
+.hypothesis/
