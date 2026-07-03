@@ -109,7 +109,7 @@ numerical integration, values pinned from Wolfram Mathematica, and Hypothesis pr
 tests.
 
 ```
-❯ pytest
+❯ uv run pytest
 =============== 359 passed ===============
 ```
 
