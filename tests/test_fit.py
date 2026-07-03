@@ -40,6 +40,26 @@ class TestFitRecoversParameters:
         assert np.isfinite(dist.mean())
         assert np.all(np.isfinite(dist.pdf(data)))
 
+    def test_optimizer_fatol_scales_with_initial_objective(self, monkeypatch):
+        captured = {}
+
+        def fake_minimize(_func, x0, method, options):
+            captured["method"] = method
+            captured["options"] = options
+            result = type("Result", (), {})()
+            result.success = True
+            result.message = "ok"
+            result.x = x0
+            return result
+
+        monkeypatch.setattr("scipy.optimize.minimize", fake_minimize)
+        data = betapert.pert(2.0, 5.0, 12.0).rvs(size=50_000, random_state=4321)
+
+        betapert.fit(data)
+
+        assert captured["method"] == "Nelder-Mead"
+        assert captured["options"]["fatol"] > 1e-10
+
 
 class TestFitValidation:
     def test_too_few_observations(self):

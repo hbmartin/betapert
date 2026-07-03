@@ -318,11 +318,15 @@ def fit(data, lambd=4):
     mode0 = (data.mean() * (2 + lambd) - mini0 - maxi0) / lambd
     mode0 = float(np.clip(mode0, mini0 + 0.01 * span, maxi0 - 0.01 * span))
 
+    x0 = np.array([mini0, mode0, maxi0])
+    initial_objective = negative_log_likelihood(x0)
+    fatol = max(abs(initial_objective), 1.0) * 1e-10 if np.isfinite(initial_objective) else 1e-10
+
     result = scipy.optimize.minimize(
         negative_log_likelihood,
-        x0=np.array([mini0, mode0, maxi0]),
+        x0=x0,
         method="Nelder-Mead",
-        options={"maxiter": 10_000, "xatol": 1e-8 * span, "fatol": 1e-10},
+        options={"maxiter": 10_000, "xatol": 1e-8 * span, "fatol": fatol},
     )
     if not result.success:
         msg = f"fit did not converge: {result.message}"

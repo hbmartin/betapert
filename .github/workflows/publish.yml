@@ -8,12 +8,19 @@ jobs:
   test:
     name: Run tests before publishing
     runs-on: ubuntu-latest
+    permissions:
+      # Needed to checkout and install the package for publish-gate tests.
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
         with:
           python-version: "3.13"
+          enable-cache: false
       - name: Install dependencies
         run: uv sync --locked
       - name: Run tests
@@ -24,13 +31,20 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
+      # Needed by checkout to build the release artifact.
+      contents: read
+      # Mandatory for PyPI trusted publishing.
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: false
       - name: Build distributions
         run: uv build
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b

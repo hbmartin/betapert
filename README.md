@@ -127,7 +127,7 @@ uv run ty check betapert                      # type check
 # Authors
 
 - [betapert (original)](https://github.com/tadamcz/betapert) by [Tom Adamczewski](https://github.com/tadamcz)
-- beta-pert-dist-scipy Python 3.13+ drop-in replacement with adjusted beta distribution variance and kurtosis by Harold Martin
+- beta-pert-dist-scipy Python 3.12+ drop-in replacement with adjusted beta distribution variance and kurtosis by Harold Martin
 
 # License
 
